@@ -22,9 +22,9 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="canonical" href="https://maximusdigitals.github.io/brightwater/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e0892b'/%3E%3Ccircle cx='16' cy='17' r='10' fill='%237a5032'/%3E%3Ccircle cx='16' cy='20' r='6' fill='%23e9cfa6'/%3E%3Ccircle cx='12.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3Ccircle cx='19.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3C/svg%3E">
-<link rel="preload" href="fonts/Bungee.woff2?v=617285" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/YoungSerif.woff2?v=617285" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=617285">
+<link rel="preload" href="fonts/Bungee.woff2?v=624734" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/YoungSerif.woff2?v=624734" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=624734">
 </head>
 <body class="locked">
 <canvas id="gl" aria-label="Brightwater Zoo, in 3D. Scroll or swipe up to walk, swipe left or right to face a cage, tap an animal."></canvas>
@@ -88,6 +88,7 @@
 </nav>
 <p id="hint3d">Scroll or swipe up to walk</p>
 <div id="banner" aria-live="polite"></div>
+<div id="acts" aria-label="Interact" hidden><button class="act" id="aFeed"><i>●</i><span>Feed</span></button><button class="act" id="aKnock"><i>✋</i><span>Tap the glass</span></button><button class="act" id="aCall"><i>♪</i><span>Call</span></button></div>
 <div id="card" role="dialog" aria-label="Exhibit" hidden></div>
 <p id="closeT" aria-live="assertive"></p>
 <div id="flash" aria-hidden="true"></div>
@@ -96,7 +97,8 @@
 <!-- runner -->
 <div id="game" aria-label="Escape the zoo">
   <div id="gred"></div>
-  <div id="hud"><span><b id="hudM">0</b> m</span><span class="hud-p"><i></i><b id="hudP">0</b></span><span class="hud-b">Best <b id="hudB">0</b></span></div>
+  <div id="hud"><span><b id="hudM">0</b> m</span><span class="hud-s"><b id="hudS">0</b><em id="hudC"></em></span><span class="hud-p"><i></i><b id="hudP">0</b></span><span class="hud-b">Best <b id="hudB">0</b></span></div>
+  <div id="pops" aria-hidden="true"></div>
   <div id="howto"><p><b>Swipe</b> ← → to change lane, ↑ to jump, ↓ to slide</p><p class="desk">Arrows or WASD · Space to jump</p></div>
   <button id="resume" hidden>Tap to keep running</button>
   <div id="over" hidden>
@@ -104,7 +106,9 @@
       <p class="ov-lab">Caught by</p>
       <h2 class="ov-h" id="ovName">Pip</h2>
       <div class="ov-stats"><div><b id="ovM">0</b><span>metres</span></div><div><b id="ovP">0</b><span>pellets</span></div><div><b id="ovS">0</b><span>score</span></div></div>
+      <p class="ov-new" id="ovNew" hidden>New best!</p>
       <p class="ov-best" id="ovBest">Best: 0</p>
+      <p class="ov-extra" id="ovExtra"></p>
       <div class="ov-btns">
         <button id="again" class="btn">Run again</button>
         <a id="share" class="btn alt" href="#" target="_blank" rel="noopener">Share score on X</a>
@@ -115,8 +119,8 @@
   </div>
 </div>
 
-<script src="audio.js?v=617285"></script>
-<script src="data.js?v=617285"></script>
-<script src="app.js?v=617285"></script>
+<script src="audio.js?v=624734"></script>
+<script src="data.js?v=624734"></script>
+<script src="app.js?v=624734"></script>
 </body>
 </html>

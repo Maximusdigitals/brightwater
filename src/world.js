@@ -2,6 +2,7 @@
    Almost all scenery is instanced (one draw call per primitive type). */
 import * as THREE from 'three';
 import { GEO, mat, buildModel } from './models.js';
+import { patch, glowTex } from './fx.js';
 
 export const E = window.EXHIBITS, Z = window.ZONES;
 export const ZK = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -24,7 +25,7 @@ export function frame(s, o = _f) {
 export const yawAt = s => { const f = frame(s); return Math.atan2(-f.t.x, -f.t.z); };
 
 // ---------- route plan: stops (pairs), zone gates ----------
-export const STOPS = [], GATES = [];
+export const STOPS = [], GATES = [], OPENROW = [];
 (function plan() {
   let s = 20; GATES.push({ s: 7, z: 'IN' });
   ZK.forEach((zk, zi) => {
@@ -32,6 +33,8 @@ export const STOPS = [], GATES = [];
     if (zi > 0) { GATES.push({ s: s - 9, z: zk }); s += 4; }
     for (let k = 0; k < ids.length; k += 2) { STOPS.push({ s, z: zk, L: ids[k], R: ids[k + 1] != null ? ids[k + 1] : -1, n: STOPS.length }); s += 15; }
   });
+  // the final stretch: a row of enclosures whose doors are all standing open
+  for (let k = 0; k < 3; k++) OPENROW.push({ s: s + k * 13 }); s += 39;
   GATES.push({ s: s + 2, z: 'OUT' });
 })();
 export const S_EXIT = GATES[GATES.length - 1].s - 3;
@@ -59,8 +62,16 @@ const rnd = (() => { let x = 1234567; return () => { x ^= x << 13; x ^= x >>> 17
 
 export function buildWorld(scene, atlasTex, gateTex, signTex) {
   const W = {};
-  const lam = new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true });
-  const boxes = new Bag(GEO.box, lam), crowns = new Bag(GEO.ico0, lam), cones = new Bag(GEO.cone, lam);
+  const lam = patch(new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }));
+  const fol = patch(new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), { wind: .045, base: 1, aoMin: .5, aoH: 2.2 });
+  const boxes = new Bag(GEO.box, lam), crowns = new Bag(GEO.ico0, fol), cones = new Bag(GEO.cone, fol);
+  const grassMat = patch(new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), { wind: .22, base: 0, aoMin: .55, aoH: .5 });
+  const grass = new Bag(new THREE.ConeGeometry(1, 1, 4).translate(0, .5, 0), grassMat);
+  const balloonMat = patch(new THREE.MeshLambertMaterial({ color: '#ffffff' }), { wind: .06, base: 4, aoMin: 1, aoH: 1 });
+  const balloons = new Bag(new THREE.IcosahedronGeometry(1, 1), balloonMat);
+  const puddleMat = new THREE.MeshBasicMaterial({ color: '#9fc4e0', transparent: true, opacity: .5, depthWrite: false });
+  const puddles = new Bag(new THREE.CircleGeometry(1, 12).rotateX(-Math.PI / 2), puddleMat);
+  const lampPos = [];
   const bulbs = new Bag(new THREE.SphereGeometry(.16, 8, 6), new THREE.MeshBasicMaterial({ color: '#fff3c4' }));
   const lanterns = new Bag(new THREE.BoxGeometry(.32, .42, .32), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
   const gc = document.createElement('canvas'); gc.width = gc.height = 64; const gx = gc.getContext('2d'), gg = gx.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -101,9 +112,9 @@ export function buildWorld(scene, atlasTex, gateTex, signTex) {
     if (s % 12 === 0 && s > -12 && s < S_EXIT + 12) {
       const k = (s / 12) % 2 ? 1 : -1, lx = f.p.x + f.r.x * 3.1 * k, lz = f.p.z + f.r.z * 3.1 * k;
       boxes.add(M(lx, 1.5, lz, .12, 3, .12, yaw), '#2b3a34'); boxes.add(M(lx - f.r.x * .25 * k, 3.0, lz - f.r.z * .25 * k, .55, .08, .12, yaw + Math.PI / 2), '#2b3a34');
-      const bi = bulbs.add(M(lx - f.r.x * .45 * k, 2.88, lz - f.r.z * .45 * k, 1, 1, 1), '#ffffff');
+      const bi = bulbs.add(M(lx - f.r.x * .45 * k, 2.88, lz - f.r.z * .45 * k, 1, 1, 1), '#ffffff'); lampPos.push(lx - f.r.x * .45 * k, 2.88, lz - f.r.z * .45 * k);
       const gi = glows.add(M(lx - f.r.x * .8 * k, .04, lz - f.r.z * .8 * k, 2.6, 1, 2.6), '#ffffff');
-      W.lamps.push({ s, bi, gi, dead: s > S_EXIT * .82 && rnd() < .5 });
+      W.lamps.push({ s, bi, gi, pi: lampPos.length / 3 - 1, r: rnd(), dead: s > S_EXIT * .82 && rnd() < .5 });
     }
   }
   // ---------- trees and bushes ----------
@@ -119,6 +130,48 @@ export function buildWorld(scene, atlasTex, gateTex, signTex) {
       if (rnd() < .55) crowns.add(M(f.p.x + f.r.x * (3.4 + rnd() * 2) * k + (rnd() - .5), .3, f.p.z + f.r.z * (3.4 + rnd() * 2) * k + (rnd() - .5) * 3, .6 + rnd() * .4, .45 + rnd() * .3, .6 + rnd() * .4, rnd() * 3), z === 'F' ? '#4a4a3e' : z === 'C' ? '#7fae6a' : st.crown[0]);
     }
   }
+  // ---------- grass tufts and flowers along the verges (wind shader) ----------
+  const nearCage = (s, lat) => (STOPS.some(st => Math.abs(st.s - s) < 2.8) || OPENROW.some(st => Math.abs(st.s - s) < 2.8)) && lat > 2.8 && lat < 8.2;
+  for (let s = -25; s < S_EXIT + 25; s += .55) {
+    frame(s, f); const z = zoneAt(s), base = blendZone(s, 'ground');
+    for (const k of [-1, 1]) for (let j = 0; j < 2; j++) {
+      const lat = 2.95 + Math.pow(rnd(), 1.6) * 10; if (nearCage(s, lat)) continue;
+      const x = f.p.x + f.r.x * lat * k + (rnd() - .5) * .5, zz = f.p.z + f.r.z * lat * k + (rnd() - .5) * .5, h = .22 + rnd() * .32;
+      const c = base.clone().multiplyScalar(.75 + rnd() * .45); if (z === 'F') c.lerp(new THREE.Color('#7a7058'), .5);
+      grass.add(M(x, 0, zz, .05 + rnd() * .04, h, .05 + rnd() * .04, rnd() * 3, (rnd() - .5) * .3, (rnd() - .5) * .3), c);
+      if ((z === 'A' || z === 'C' || z === 'B') && rnd() < .07) crowns.add(M(x, h + .02, zz, .07, .05, .07, rnd()), z === 'C' ? ['#ffd1dc', '#ffffff', '#f6a5c0'][(rnd() * 3) | 0] : ['#ffd25a', '#ffffff', '#e8623a', '#c86ad8'][(rnd() * 4) | 0]);
+    }
+  }
+  // ---------- benches, bins, planters between the enclosures ----------
+  for (let i = 0; i < STOPS.length; i++) {
+    const s = STOPS[i].s + 7.5, z = zoneAt(s), side = i % 2 ? 1 : -1; frame(s, f);
+    const yaw = Math.atan2(-f.t.x, -f.t.z), F = new THREE.Matrix4().compose(new THREE.Vector3(f.p.x + f.r.x * 3.45 * side, 0, f.p.z + f.r.z * 3.45 * side), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw + (side < 0 ? Math.PI / 2 : -Math.PI / 2), 0)), new THREE.Vector3(1, 1, 1));
+    const wood = z === 'F' ? '#4a4038' : '#9a6a3a', iron = '#25302b';
+    for (let k = 0; k < 3; k++) boxes.add(inFrame(F, 0, .46, -.05 + k * .14, 1.7, .05, .11), wood);
+    for (let k = 0; k < 2; k++) boxes.add(inFrame(F, 0, .66 + k * .17, -.27, 1.7, .1, .04, 0, -.15), wood);
+    for (const x of [-.75, .75]) { boxes.add(inFrame(F, x, .23, .05, .06, .46, .4), iron); boxes.add(inFrame(F, x, .55, -.25, .06, .6, .06), iron); }
+    // a bin
+    boxes.add(inFrame(F, 1.3, .38, 0, .42, .76, .42), z === 'F' ? '#3a3a36' : '#2f5a3a'); boxes.add(inFrame(F, 1.3, .79, 0, .48, .06, .48), '#1f2a22');
+    // planters in the sunny zones, a knocked-over bin later on
+    if ('ABC'.includes(z)) { boxes.add(inFrame(F, -1.45, .25, 0, .7, .5, .7), '#c9b48a'); for (let k = 0; k < 5; k++) crowns.add(inFrame(F, -1.45 + (rnd() - .5) * .4, .6, (rnd() - .5) * .4, .16, .14, .16, rnd()), z === 'C' ? '#f2a7b8' : ['#ffd25a', '#e8623a', '#c86ad8', '#ffffff'][k % 4]); crowns.add(inFrame(F, -1.45, .52, 0, .36, .16, .36), '#5f9a4a'); }
+    if (z === 'F' && i % 3 === 0) boxes.add(inFrame(F, 1.3, .2, .55, .42, .42, .76, 0, 1.4), '#3a3a36');
+  }
+  // ---------- a balloon cart at the entrance (and one balloon much later) ----------
+  const cart = (s, side, n, cols) => {
+    frame(s, f); const x0 = f.p.x + f.r.x * 3.7 * side, z0 = f.p.z + f.r.z * 3.7 * side, yaw = Math.atan2(-f.t.x, -f.t.z);
+    if (n > 1) { boxes.add(M(x0, .55, z0, 1.1, .5, .7, yaw), '#e0892b'); boxes.add(M(x0, .95, z0, 1.2, .08, .8, yaw), '#f5f0e2'); for (const dz of [-.3, .3]) boxes.add(M(x0 + f.t.x * dz, .18, z0 + f.t.z * dz, .1, .36, .8, yaw), '#25302b'); }
+    for (let k = 0; k < n; k++) {
+      const a = k * 2.4, r = n > 1 ? .25 + (k % 3) * .14 : 0, bx = x0 + Math.cos(a) * r, bz = z0 + Math.sin(a) * r, by = (n > 1 ? 2.5 : 1.6) + (k % 4) * .22;
+      balloons.add(M(bx, by, bz, .26, .32, .26), cols[k % cols.length]);
+      boxes.add(M((bx + x0) / 2, (by + (n > 1 ? 1 : .5)) / 2 - .1, (bz + z0) / 2, .012, by - (n > 1 ? 1 : .5) - .2, .012, 0, (bx - x0) * .4, (bz - z0) * .4), '#e8e2d2');
+    }
+  };
+  cart(13, 1, 9, ['#d9566b', '#3b8fd1', '#ffd25a', '#f3ede0', '#3f9d5a', '#c86ad8']);
+  cart(STOPS[10].s + 4, -1, 6, ['#f2a7b8', '#ffd1dc', '#ffffff', '#b9d8f2']);
+  cart(STOPS[23].s + 7.5, (23 % 2 ? 1 : -1) * .92, 1, ['#c8140c']);
+  // ---------- puddles from dusk on (they reflect the sky) ----------
+  for (let s = STOPS[12].s; s < S_EXIT; s += 6 + rnd() * 9) { frame(s, f); const lat = (rnd() - .5) * 3.6; puddles.add(M(f.p.x + f.r.x * lat, .035, f.p.z + f.r.z * lat, .5 + rnd() * .9, 1, .35 + rnd() * .5, rnd() * 3), '#ffffff'); }
+
   // clouds
   const clouds = new Bag(GEO.ico0, new THREE.MeshBasicMaterial({ color: '#ffffff', fog: false }));
   for (let i = 0; i < 26; i++) { const a = rnd() * Math.PI * 2, r = 160 + rnd() * 60; for (let j = 0; j < 3; j++) clouds.add(M(Math.cos(a) * r + j * 9, 55 + rnd() * 30, Math.sin(a) * r - S_EXIT / 2, 10 + rnd() * 6, 4 + rnd() * 2, 7 + rnd() * 3, rnd()), '#ffffff'); }
@@ -161,8 +214,9 @@ export function buildWorld(scene, atlasTex, gateTex, signTex) {
       if (st.z === 'F') for (let k = 0; k < 8; k++) boxes.add(inFrame(F, -CW / 2 + .3 + k * .6, .28, CD / 2 + .08, .3, .14, .05, 0, 0, .6), k % 2 ? '#1f1c17' : '#e8c23a');
       // front: bars or glass
       const doorAng = cage === 'ajar' ? -1.05 : (cage === 'empty' || cage === 'open-you') ? -1.75 : 0;
+      const bars = []; let glass = null;
       if (tank) {
-        if (cage !== 'ajar') { const g = new THREE.Mesh(GEO.box, glassMat); g.applyMatrix4(inFrame(F, 0, CH / 2, CD / 2 - .05, CW - .2, CH - .3, .04)); scene.add(g); W.stopObjs[si].push(g); }
+        if (cage !== 'ajar') { const g = new THREE.Mesh(GEO.box, glassMat); g.applyMatrix4(inFrame(F, 0, CH / 2, CD / 2 - .05, CW - .2, CH - .3, .04)); scene.add(g); W.stopObjs[si].push(g); glass = g; }
         else for (let k = 0; k < 9; k++) boxes.add(inFrame(F, (rnd() - .5) * 3, .05, CD / 2 + .4 + rnd() * 1.6, .25 + rnd() * .3, .04, .2 + rnd() * .2, rnd() * 3), '#bfeaf0');
         const wv = new THREE.Mesh(GEO.box, waterMat); wv.applyMatrix4(inFrame(F, 0, (CH - .3) / 2 + .1, -.05, CW - .3, CH - .35, CD - .3)); scene.add(wv); W.stopObjs[si].push(wv);
         for (let k = 0; k < 4; k++) cones.add(inFrame(F, -1.8 + k * 1.1 + rnd() * .3, .5, -1.5 + rnd() * .4, .14, 1 + rnd(), .14), '#3f8f5a');
@@ -171,12 +225,12 @@ export function buildWorld(scene, atlasTex, gateTex, signTex) {
         for (let b = 0; b < nb; b++) {
           const x = -CW / 2 + .2 + b * (CW - .4) / (nb - 1);
           if (Math.abs(x) < .62) continue;
-          boxes.add(inFrame(F, x, CH / 2, CD / 2, .07, CH - .1, .07), S.bar);
+          bars.push(boxes.add(inFrame(F, x, CH / 2, CD / 2, .07, CH - .1, .07), S.bar));
         }
         // the door: three bars hinged at x = -.62
         const D = new THREE.Matrix4().multiplyMatrices(F, M(-.62, 0, CD / 2, 1, 1, 1, doorAng)).clone();
-        for (const dx of [.2, .62, 1.04]) boxes.add(inFrame(D, dx, CH / 2 - .05, 0, .07, CH - .2, .07), S.bar);
-        boxes.add(inFrame(D, .62, CH * .55, 0, 1.24, .08, .08), S.bar);
+        for (const dx of [.2, .62, 1.04]) bars.push(boxes.add(inFrame(D, dx, CH / 2 - .05, 0, .07, CH - .2, .07), S.bar));
+        bars.push(boxes.add(inFrame(D, .62, CH * .55, 0, 1.24, .08, .08), S.bar));
         boxes.add(inFrame(D, 1.0, CH * .5, .06, .1, .22, .1), '#d8b441');
       }
       // inside dressing
@@ -203,12 +257,42 @@ export function buildWorld(scene, atlasTex, gateTex, signTex) {
         const holder = new THREE.Group(); holder.applyMatrix4(F); holder.add(R.root); scene.add(holder);
         R.holder = holder; W.stopObjs[si].push(holder);
       }
-      const ex = { i, e, si, side, R, F, ry, center: new THREE.Vector3(ox, 1.2, oz), cage, tank, absent };
+      const ex = { i, e, si, side, R, F, ry, center: new THREE.Vector3(ox, 1.2, oz), cage, tank, absent, bars, glass, barred: !tank && cage !== 'none' };
       // tap proxy (generous)
       const px = new THREE.Mesh(GEO.box, new THREE.MeshBasicMaterial({ visible: false }));
-      const ph = R ? Math.max(1.4, R.h + .4) : 2.2, pw = R ? Math.min(CW - .4, Math.max(1.6, R.w + .6)) : CW - .6;
+      const ph = R ? Math.max(1.6, Math.min(CH - .2, R.h + .5)) : 2.2, pw = CW - .3;
       px.applyMatrix4(inFrame(F, 0, ph / 2 + .1, 0, pw, ph, CD - .6)); px.userData.ex = W.ex.length; scene.add(px); ex.proxy = px; W.stopObjs[si].push(px);
       W.ex.push(ex);
+    }
+  });
+  // ---------- the open row: every door swung open, nothing inside, prints leading out ----------
+  const alarmPos = [];
+  OPENROW.forEach((o, oi) => {
+    for (const side of [-1, 1]) {
+      frame(o.s, f);
+      const ox = f.p.x + f.r.x * OFF * side, oz = f.p.z + f.r.z * OFF * side, ry = Math.atan2(-f.r.x * side, -f.r.z * side);
+      const F = new THREE.Matrix4().compose(new THREE.Vector3(ox, 0, oz), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(1, 1, 1));
+      const S = STYLE.F;
+      boxes.add(inFrame(F, 0, .06, 0, CW, .12, CD), S.floor); boxes.add(inFrame(F, 0, CH / 2, -CD / 2, CW, CH, .14), S.wall);
+      for (const x of [-1, 1]) { boxes.add(inFrame(F, x * CW / 2, .45, 0, .16, .9, CD), S.wall); for (let b = 0; b < 9; b++) boxes.add(inFrame(F, x * CW / 2, CH / 2 + .45, -CD / 2 + .3 + b * (CD - .5) / 8, .06, CH - .9, .06), S.bar); boxes.add(inFrame(F, x * CW / 2, CH / 2, CD / 2, .2, CH, .2), S.frame); }
+      boxes.add(inFrame(F, 0, CH, 0, CW + .3, .16, CD + .3), S.roof); boxes.add(inFrame(F, 0, CH - .08, CD / 2, CW, .16, .2), S.frame); boxes.add(inFrame(F, 0, .1, CD / 2, CW, .2, .2), S.frame);
+      for (let b = 0; b < 13; b++) { const x = -CW / 2 + .2 + b * (CW - .4) / 12; if (Math.abs(x) < .62) continue; boxes.add(inFrame(F, x, CH / 2, CD / 2, .07, CH - .1, .07), S.bar); }
+      const D = new THREE.Matrix4().multiplyMatrices(F, M(-.62, 0, CD / 2, 1, 1, 1, -1.85 - rnd() * .3)).clone();
+      for (const dx of [.2, .62, 1.04]) boxes.add(inFrame(D, dx, CH / 2 - .05, 0, .07, CH - .2, .07), S.bar);
+      boxes.add(inFrame(D, .62, CH * .55, 0, 1.24, .08, .08), S.bar);
+      // an emergency beacon over every open door
+      glows.add(inFrame(F, -.62, CH + .2, CD / 2 + .1, .22, .22, .22), '#ff3a22'); const ap = new THREE.Vector3(-.62, CH + .2, CD / 2 + .1).applyMatrix4(F); alarmPos.push(ap.x, ap.y, ap.z); boxes.add(inFrame(D, 1.0, CH * .5, .06, .1, .22, .1), '#8a2a1a');
+      // claw marks on the back wall, a torn chain, straw
+      for (let k = 0; k < 4; k++) boxes.add(inFrame(F, -.6 + k * .18, 1.6, -CD / 2 + .08, .05, 1.1, .02, 0, 0, .35), '#1a1412');
+      for (let k = 0; k < 5; k++) boxes.add(inFrame(F, .9 + k * .12, .16, -1 + k * .2, .1, .05, .16, k), '#6a6a66');
+      boxes.add(inFrame(F, -1.3, .18, -1.2, 1.3, .12, .9, .4), '#8a7a4a');
+      for (let k = 0; k < 8; k++) boxes.add(inFrame(F, -CW / 2 + .3 + k * .6, .28, CD / 2 + .08, .3, .14, .05, 0, 0, .6), k % 2 ? '#1f1c17' : '#e8c23a');
+      // prints: out of the door and away down the path, towards the exit
+      for (let k = 0; k < 9; k++) {
+        const t = k / 8, sp = o.s + t * (10 + oi * 3), lat = OFF * side * (1 - t) + side * .5 * Math.sin(k * 2.1);
+        frame(sp, f); const yaw = Math.atan2(-f.t.x, -f.t.z) + side * (1 - t) * 1.2;
+        paws.add(M(f.p.x + f.r.x * (lat + (k % 2 ? .18 : -.18)), .04, f.p.z + f.r.z * (lat + (k % 2 ? .18 : -.18)), 1.3, 1, 1.6, yaw), '#5a120c');
+      }
     }
   });
   // ---------- gates (arches with painted signs) ----------
@@ -241,8 +325,15 @@ export function buildWorld(scene, atlasTex, gateTex, signTex) {
     W.statues.push({ s, R, base: R.root.rotation.y });
   });
 
-  [boxes, crowns, cones, bulbs, lanterns, glows, paws, clouds].forEach(b => scene.add(b.build()));
-  W.bulbs = bulbs.im; W.glows = glows.im; W.glowMat = glowMat; W.lanternIm = lanterns.im; W.clouds = clouds.im; W.pawMat = pawMat; W.cloudMat = clouds.mat;
-  W.counts = { boxes: boxes.m.length, crowns: crowns.m.length, cones: cones.m.length };
+  [boxes, crowns, cones, bulbs, lanterns, glows, paws, clouds, grass, balloons, puddles].forEach(b => scene.add(b.build()));
+  // lamp bloom: one additive point sprite per lamp; colour black = off
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lampPos, 3)); lg.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(lampPos.length).fill(1), 3));
+  const lpm = new THREE.PointsMaterial({ size: 2.6, map: glowTex(), color: '#ffcf7a', vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, sizeAttenuation: true });
+  const ag = new THREE.BufferGeometry(); ag.setAttribute('position', new THREE.Float32BufferAttribute(alarmPos, 3));
+  W.alarmPts = new THREE.Points(ag, new THREE.PointsMaterial({ size: 3.2, map: glowTex(), color: '#ff2a14', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); W.alarmPts.frustumCulled = false; scene.add(W.alarmPts);
+  const lpts = new THREE.Points(lg, lpm); lpts.frustumCulled = false; scene.add(lpts); W.lampPts = lpts; W.puddleMat = puddleMat;
+  W.calls0 = 0;
+  W.boxIm = boxes.im; W.bulbs = bulbs.im; W.glows = glows.im; W.glowMat = glowMat; W.lanternIm = lanterns.im; W.clouds = clouds.im; W.pawMat = pawMat; W.cloudMat = clouds.mat;
+  W.counts = { boxes: boxes.m.length, crowns: crowns.m.length, cones: cones.m.length, grass: grass.m.length, balloons: balloons.m.length };
   return W;
 }

@@ -111,7 +111,7 @@ function sequencer() {
 function ambience() {
   const loop = () => {
     if (!A.on) return; const d = A.d;
-    if (!A.stopAmb) {
+    if (!A.stopAmb && !A.quiet) {
       if (Math.random() < Math.pow(1 - d, 2.2) * .55) bird(Math.random() * 1.6 - .8);
       if (d > .35 && d < .9 && Math.random() < Math.sin(Math.min(1, (d - .35) / .55) * Math.PI) * .7) cricket(Math.random() * 1.6 - .8);
     }
@@ -124,7 +124,7 @@ function cricket(p) { for (let i = 0; i < 6; i++) tone('sine', 4400, .02, .02, i
 
 /* ---------- the dread dial: called with 0..1 as you walk ---------- */
 function setDread(d, stage = 'tour') {
-  A.d = d; if (!A.on || stage !== 'tour') return;
+  A.d = d; if (!A.on || stage !== 'tour' || A.quiet) return;
   setG(A.mus, Math.pow(1 - d, 2.2) * .55 * A.music, 1.5);
   setG(A.box, Math.max(0, Math.min(1, (d - .45) / .35)) * Math.max(0, 1 - (d - .8) * 4) * .5 * A.music, 2);
   setG(A.crowd, Math.pow(Math.max(0, 1 - d * 2.2), 2) * .05, 2);
@@ -132,6 +132,16 @@ function setDread(d, stage = 'tour') {
   setG(A.drone, Math.pow(Math.max(0, (d - .4) / .6), 1.6) * .3, 3);
   try { A.dlp.frequency.setTargetAtTime(90 + d * 120, A.ac.currentTime, 1); } catch (e) {}
 }
+/* the long silence before the gates: everything fades out over a few seconds */
+function quiet(on) { A.quiet = !!on; if (!A.on) return; if (on) [A.mus, A.box, A.crowd, A.wind, A.drone].forEach(g => setG(g, 0, 2.5)); else setDread(A.d); }
+function click(p = 0) { hiss(.03, .22, 2600, 3, 'bandpass', 0, p); tone('sine', 120, .25, .05, 0, { to: 40, pan: p }); }
+/* play interactions */
+function glass(p = 0) { [0, .13].forEach(w => { tone('sine', 1900, .05, .07, w, { to: 1500, pan: p }); hiss(.035, .28, 3400, 3, 'bandpass', w, p); tone('sine', 380, .1, .12, w, { to: 300, pan: p }); }); }
+function clang(p = 0, k = 1) { [523, 1318, 2093, 3170, 4400].forEach((f, i) => tone('sine', f * k * (1 + (Math.random() - .5) * .01), 1.3 - i * .18, .09 / (1 + i * .6), 0, { pan: p, wet: 1, vib: 6 + i, vd: f * .004 })); hiss(.06, .3, 2500, 1.5, 'bandpass', 0, p); }
+function whistle() { tone('sine', 1350, .16, .06, 0, { to: 2100 }); tone('sine', 1500, .22, .06, .24, { to: 1050 }); }
+function chomp(p = 0, n = 4) { for (let i = 0; i < n; i++) { hiss(.06, .14, 900 + Math.random() * 500, 2, 'bandpass', i * .24, p); tone('sine', 140, .05, .05, i * .24 + .02, { pan: p }); } }
+function thud(p = 0) { tone('sine', 85, .35, .35, 0, { to: 38, pan: p }); hiss(.25, .3, 300, 1, 'lowpass', 0, p); }
+function toss() { hiss(.25, .06, 1600, 1, 'bandpass', 0, 0, 600); }
 function hushAll(t = .2) { if (!A.on) return; A.stopAmb = true; [A.mus, A.box, A.crowd, A.wind, A.drone].forEach(g => setG(g, 0, t)); }
 
 /* ---------- animal voices ---------- */
@@ -193,7 +203,11 @@ const run = {
   jump: () => tone('square', 300, .14, .05, 0, { to: 700 }),
   slide: () => hiss(.25, .12, 1200, 1, 'bandpass', 0, 0, 400),
   lane: p => hiss(.08, .06, 2200, 2, 'bandpass', 0, p),
-  pellet: () => { tone('sine', 1567, .07, .05); tone('sine', 2093, .1, .04, .05); },
+  pellet: (n = 0) => { const k = Math.pow(2, Math.min(n, 12) / 12); tone('sine', 1567 * k, .07, .05); tone('sine', 2093 * k, .1, .04, .05); },
+  combo: n => [0, 4, 7, 12].forEach((s, i) => tone('triangle', 784 * Math.pow(2, s / 12), .12, .04, i * .05)),
+  whoosh: (p = 0) => hiss(.32, .2, 1400, 1.1, 'bandpass', 0, p, 500),
+  near: (p = 0) => { hiss(.3, .22, 2200, 1.2, 'bandpass', 0, p, 700); tone('sine', 1320, .08, .035, .05); },
+  roar: () => { voice('growl', .9, (Math.random() - .5) * .6); },
   bump: () => { tone('square', 90, .18, .2, 0, { to: 50 }); hiss(.15, .25, 400, 1, 'lowpass'); },
   crash: () => { hiss(.8, .6, 400, .5, 'lowpass'); tone('sine', 50, .9, .7, 0, { to: 25 }); sting(.8); },
   feet: k => step(0, 0, .05 + k * .05),
@@ -201,5 +215,5 @@ const run = {
   chase: k => { if (!A.on) return; setG(A.drone, .15 + k * .3, .3); },
   stop: () => { if (!A.on) return; setG(A.drone, 0, 1); setG(A.wind, 0, 1); }
 };
-window.SFX = { A, unlock, kick, setDread, hushAll, voice, step, giggle, whisper, heart, breath, feed, ui, sting, roar, run, get on() { return A.on; }, get state() { return A.on ? A.ac.state : 'off'; } };
+window.SFX = { A, unlock, kick, setDread, hushAll, quiet, click, glass, clang, whistle, chomp, thud, toss, voice, step, giggle, whisper, heart, breath, feed, ui, sting, roar, run, get on() { return A.on; }, get state() { return A.on ? A.ac.state : 'off'; } };
 })();

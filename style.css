@@ -1,10 +1,10 @@
-@font-face{font-family:"Bungee";src:url(fonts/Bungee.woff2?v=617285) format("woff2");font-display:swap}
-@font-face{font-family:"Bungee Inline";src:url(fonts/BungeeInline.woff2?v=617285) format("woff2");font-display:swap}
-@font-face{font-family:"Young Serif";src:url(fonts/YoungSerif.woff2?v=617285) format("woff2");font-display:swap}
-@font-face{font-family:"Archivo";src:url(fonts/Archivo.woff2?v=617285) format("woff2");font-weight:400 800;font-stretch:62% 125%;font-display:swap}
-@font-face{font-family:"Reenie";src:url(fonts/ReenieBeanie.woff2?v=617285) format("woff2");font-display:swap}
-@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime.woff2?v=617285) format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime-Bold.woff2?v=617285) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Bungee";src:url(fonts/Bungee.woff2?v=624734) format("woff2");font-display:swap}
+@font-face{font-family:"Bungee Inline";src:url(fonts/BungeeInline.woff2?v=624734) format("woff2");font-display:swap}
+@font-face{font-family:"Young Serif";src:url(fonts/YoungSerif.woff2?v=624734) format("woff2");font-display:swap}
+@font-face{font-family:"Archivo";src:url(fonts/Archivo.woff2?v=624734) format("woff2");font-weight:400 800;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"Reenie";src:url(fonts/ReenieBeanie.woff2?v=624734) format("woff2");font-display:swap}
+@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime.woff2?v=624734) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime-Bold.woff2?v=624734) format("woff2");font-weight:700;font-display:swap}
 :root{--paper:#f3ead3;--card:#fbf5e6;--ink:#1f1c17;--bg:#f3ead3;--fg:#1f1c17;--mute:#6f675a;--rule:#cdbf9f;
 --or:#e0892b;--gr:#3f7d3a;--pk:#d9566b;--bl:#3b4f8f;--tl:#1f7f86;--rd:#8f2a22;--mu:#d8b441;
 --sign:"Bungee",Impact,"Arial Black",sans-serif;--serif:"Young Serif",Georgia,serif;--sans:"Archivo","Helvetica Neue",Arial,sans-serif;--hand:"Reenie","Comic Sans MS",cursive;--mono:"Courier Prime","Courier New",monospace;
@@ -159,3 +159,32 @@ body.touring #hint3d{opacity:1}
 #resume{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:400 1.1rem/1 var(--sign);background:#f3ead3;color:#000;padding:1rem 1.3rem;border-radius:999px}
 #resume[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){#hint3d{animation:none}#card.in{animation:none}#banner.on{animation-duration:5s}}
+
+/* runner juice */
+.hud-s{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.hud-s b{font-size:1.9rem!important;text-shadow:0 2px 0 #000}
+.hud-s em{font:400 .8rem/1 var(--sign);font-style:normal;color:#ffd25a;min-height:.8rem;transition:transform .15s}
+.hud-s em.bump{transform:scale(1.4)}
+#pops{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#pops span{position:absolute;left:50%;top:46%;transform:translate(-50%,0);font:400 1.25rem/1 var(--sign);color:#ffd25a;text-shadow:0 2px 0 #000,0 0 12px rgba(255,200,80,.6);white-space:nowrap;animation:popup .9s ease-out forwards}
+#pops span.near{color:#9fe8ff;text-shadow:0 2px 0 #000,0 0 12px rgba(120,220,255,.6)}
+#pops span.warn{color:#ff5a3a;font-size:1.05rem}
+@keyframes popup{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-70px) scale(1)}}
+.ov-card{animation:ovin .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes ovin{from{transform:translateY(30px) scale(.92);opacity:0}to{transform:none;opacity:1}}
+.ov-new{display:inline-block;margin:.7rem 0 0;padding:.3rem .7rem;border-radius:99px;background:var(--rd);color:#fff;font:400 .9rem/1 var(--sign);animation:newb 1s ease-in-out infinite alternate}
+.ov-new[hidden]{display:none}
+@keyframes newb{to{transform:scale(1.08) rotate(-2deg)}}
+.ov-extra{font:600 .8rem/1.3 var(--sans);color:var(--mute);margin:-.3rem 0 .8rem}
+@media (prefers-reduced-motion:reduce){#pops span,.ov-card,.ov-new{animation-duration:.01s}}
+
+/* interaction bar: shown while you look into an enclosure */
+#acts{position:fixed;left:50%;bottom:max(4.6rem,calc(env(safe-area-inset-bottom) + 4.1rem));transform:translateX(-50%);z-index:21;display:flex;gap:.45rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+#acts.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(-4px)}
+#acts[hidden]{display:none}
+.act{display:flex;align-items:center;gap:.35rem;background:#1f1c17;color:#fbf5e6;border:2px solid #fbf5e6;border-radius:999px;padding:.6rem .85rem;font:400 .78rem/1 var(--sign);box-shadow:0 3px 0 rgba(0,0,0,.35);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.act i{font-style:normal;font-size:.8rem;color:#ffd25a}
+.act:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.act.busy{opacity:.55}
+@media (max-width:420px){.act{padding:.55rem .65rem;font-size:.7rem}}
+body.ending #acts,body.running #acts{display:none}

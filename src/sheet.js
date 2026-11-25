@@ -5,6 +5,6 @@ const row = +(new URLSearchParams(location.search).get('row') || 0), N = 5;
 const sc = new THREE.Scene(); sc.background = new THREE.Color('#bfe3ff');
 sc.add(new THREE.HemisphereLight('#ffffff', '#8fbf6a', 2.0)); const dl = new THREE.DirectionalLight('#fff4dc', 2.2); dl.position.set(3, 6, 4); sc.add(dl);
 const cam = new THREE.PerspectiveCamera(30, 1600 / 700, .1, 500); cam.position.set(10, 2.4, 17.5); cam.lookAt(10, 1.3, 0);
-E.slice(row * N, row * N + N).forEach((e, i) => { const R = buildModel(e); R.root.position.set(i * 5, 0, 0); R.root.rotation.y = -Math.PI / 3.5; sc.add(R.root); animate(R, 1, 0); });
+E.slice(row * N, row * N + N).forEach((e, i) => { const R = buildModel(e); R.root.position.set(i * 5, 0, 0); R.root.rotation.y = -Math.PI / 3.5; sc.add(R.root); animate(R, 1, 0, 0, row % 2 ? .8 : 0); R.gait = 1.2; animate(R, 1, 0, 0, row % 2 ? .8 : 0); });
 const g = new THREE.Mesh(new THREE.PlaneGeometry(80, 50), new THREE.MeshLambertMaterial({ color: '#9fcf7a' })); g.rotation.x = -Math.PI / 2; g.position.set(25, 0, 0); sc.add(g);
 r.render(sc, cam); window.done = 1;

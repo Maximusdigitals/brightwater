@@ -1,6 +1,8 @@
 /* Brightwater 3D: every creature is built in code from a handful of low-poly parts.
    Forward is +x, up is +y. Models are normalised to a target height afterwards. */
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { patch } from './fx.js';
 
 const G = {
   ico: new THREE.IcosahedronGeometry(1, 1),
@@ -65,6 +67,7 @@ function eyes(par, a, cx, cy, cz, r, sep, look = [1, 0, 0]) {
     } else if (kind === 'slit') {
       P(e, 'eye', a.iris || '#c9a23a', [0, 0, 0], [r * .5, r * .8, r * .8], [0, 0, 0], 'basic');
       P(e, 'box', '#111', [r * .42, 0, 0], [r * .1, r * 1.2, r * .18], [0, 0, 0], 'basic');
+      P(e, 'eye', '#ffffff', [r * .44, r * .3, -r * .22], [r * .08, r * .14, r * .14], [0, 0, 0], 'basic');
     } else {
       P(e, 'eye', '#141210', [0, 0, 0], [r * .55, r * .75, r * .75], [0, 0, 0], 'basic');
       P(e, 'eye', '#ffffff', [r * .4, r * .28, -r * .2], [r * .12, r * .2, r * .2], [0, 0, 0], 'basic');
@@ -146,13 +149,20 @@ function quad(root, a, R) {
   if (a.stripe) P(body, 'box', '#efe9dc', [L * .3, by, 0], [L * .05, H * .9, H * .92]);
   pattern(body, a, L, H, by);
   // legs
-  const n = a.legs || 4, pairs = n / 2; R.legs = [];
+  // chest and haunches give the body a proper silhouette
+  P(body, 'ico', c, [L * .27, by + H * .03, 0], [L * .27, H * .47, H * .42]);
+  P(body, 'ico', c, [-L * .28, by + H * .01, 0], [L * .25, H * .46, H * .41]);
+  const n = a.legs || 4, pairs = n / 2; R.legs = []; R.knees = [];
+  const lc = a.legc || darker(c, .92), pc = a.paw === 'hoof' ? '#2a2420' : darker(c, .7);
   for (let i = 0; i < pairs; i++) for (const s of [-1, 1]) {
-    const x = pairs === 1 ? 0 : (i / (pairs - 1) - .5) * L * .7;
-    const lg = grp(root, [x, legL + H * .1, s * H * .28]);
-    P(lg, 'box', c, [0, -(legL + H * .1) / 2, 0], [lw, legL + H * .2, lw]);
-    if (a.paw === 'hoof') P(lg, 'box', '#2a2420', [0, -(legL + H * .1) + lw * .3, 0], [lw * 1.05, lw * .6, lw * 1.05]);
-    R.legs.push(lg);
+    const x = pairs === 1 ? 0 : (i / (pairs - 1) - .5) * L * .7, hind = x < 0 && pairs > 1;
+    const LL = legL + H * .1, lg = grp(root, [x, LL, s * H * .28]);
+    P(lg, 'ico', c, [hind ? -lw * .15 : lw * .1, -LL * .2, 0], [lw * (hind ? 1.05 : .85), LL * .33, lw * .72]);
+    const kn = grp(lg, [0, -LL * .48, 0]);
+    P(kn, 'box', lc, [0, -LL * .26, 0], [lw * .62, LL * .56, lw * .62]);
+    if (a.paw === 'hoof') P(kn, 'box', pc, [0, -LL * .52 + lw * .2, 0], [lw * .78, lw * .42, lw * .78]);
+    else P(kn, 'ico0', pc, [lw * .22, -LL * .52 + lw * .16, 0], [lw * .55, lw * .26, lw * .5]);
+    R.legs.push(lg); R.knees.push(kn);
   }
   // neck + head
   const head = grp(root); R.head = head;
@@ -201,7 +211,7 @@ function upright(root, a, R) {
   const bodyH = Math.max(h - lh - hr * 2 * hh, bw * 1.4), by = lh + bodyH / 2;
   const body = grp(root); R.bob = body;
   R.legs = [];
-  for (const s of [-1, 1]) { const lg = grp(root, [0, lh, s * bw * .45]); P(lg, 'box', c, [0, -lh / 2, 0], [bw * .45, lh + .02, bw * .45]); R.legs.push(lg); }
+  for (const s of [-1, 1]) { const lg = grp(root, [0, lh, s * bw * .45]); P(lg, 'box', c, [0, -lh / 2, 0], [bw * .45, lh + .02, bw * .45]); P(lg, 'ico0', darker(a.face || c, .75), [bw * .22, -lh + bw * .06, 0], [bw * .38, bw * .13, bw * .27]); R.legs.push(lg); }
   P(body, 'ico', c, [0, by, 0], [bw * .85, bodyH / 2, bw]);
   if (a.belly) P(body, 'ico', a.belly, [bw * .35, by - bodyH * .05, 0], [bw * .55, bodyH * .4, bw * .75]);
   if (a.apron) P(body, 'box', a.apron, [bw * .5, by - bodyH * .15, 0], [bw * .3, bodyH * .7, bw * 1.3]);
@@ -259,7 +269,7 @@ function blob(root, a, R) {
   if (a.bigtail) { R.tail = grp(root, [-r * .9, r * .5, 0]); const tc = a.tailc || c; P(R.tail, 'box', tc, [-r * .2, r * .3, 0], [r * .15, r * .6, r * .12], [0, 0, .7]); P(R.tail, 'box', tc, [-r * .35, r * .8, 0], [r * .5, r * .15, r * .12], [0, 0, .3]); P(R.tail, 'box', tc, [-r * .5, r * 1.15, 0], [r * .2, r * .8, r * .14], [0, 0, .7]); }
   if (a.clipWings) { R.wings = []; for (const s of [-1, 1]) { const wg = grp(body, [-r * .45, r * 1.15, s * r * .6]); P(wg, 'cone4', a.wingc, [0, r * .2, s * r * .2], [r * .35, r * .35, r * .08], [s * .9, 0, 0]); P(wg, 'box', '#ffffff', [0, r * .02, s * r * .1], [r * .25, r * .06, r * .25]); R.wings.push(wg); } }
   // stubby feet
-  for (const s of [-1, 1]) P(root, 'ico0', darker(c, .85), [r * .4, r * .1, s * r * .45], [r * .3, r * .14, r * .22]);
+  R.legs = []; for (const s of [-1, 1]) { const lg = grp(root, [r * .4, r * .2, s * r * .45]); P(lg, 'ico0', darker(c, .85), [0, -r * .1, 0], [r * .3, r * .14, r * .22]); R.legs.push(lg); }
   if (a.ear === 'cat' || a.ear === 'antenna') { R.tail = R.tail || grp(root, [-r * .9, r * .4, 0]); if (!a.bigtail) limb(R.tail, [0, 0, 0], [-r * .5, r * .8, 0], r * .1, c); }
 }
 
@@ -343,6 +353,7 @@ function serpent(root, a, R) {
     const s = P(sp, 'ico0', (a.pat && i % 3 === 0) ? a.patc : c, [Math.cos(ang) * rad, .17 + t * .9 * (t > .8 ? 1 : 0) + .02 * i * (t > .75), Math.sin(ang) * rad], [.24 - t * .06, .18, .24 - t * .06]);
     R.segs.push(s);
   }
+  R.segY = R.segs.map(m => m.position.y);
   const last = R.segs[n - 1].position;
   const head = grp(root, [last.x, last.y + .35, last.z]); R.head = head;
   limb(root, [last.x, last.y, last.z], [last.x, last.y + .35, last.z], .14, c);
@@ -432,6 +443,8 @@ export function buildModel(e, maxW = 3.7) {
   const a = e.a, root = new THREE.Group(), R = { root };
   const inner = new THREE.Group(); root.add(inner);
   (PLANS[a.plan] || quad)(inner, a, R);
+  // Spirit Grove residents are chibi: big heads, big eyes
+  if (e.t === 'anime' && R.head && (a.plan === 'quad' || a.plan === 'upright')) R.head.scale.multiplyScalar(1.32);
   inner.updateMatrixWorld(true);
   _box.setFromObject(inner);
   const h = _box.max.y - Math.min(0, _box.min.y), w = Math.max(_box.max.x - _box.min.x, _box.max.z - _box.min.z);
@@ -444,24 +457,72 @@ export function buildModel(e, maxW = 3.7) {
   R.scale = s; R.h = h * s; R.w = w * s; R.plan = a.plan;
   // blob shadow
   const sh = new THREE.Mesh(G.disc, mat('#000000', 'shade')); sh.rotation.x = -Math.PI / 2; sh.position.y = .02; sh.scale.set(Math.min(1.8, w * s * .45), Math.min(1.4, w * s * .35), 1); root.add(sh);
-  R.phase = Math.random() * 10;
+  R.phase = Math.random() * 10; R.gait = 0;
+  if (R.ears) R.earRot = R.ears.map(m => m.rotation.x);
+  bake(root, R);
   return R;
 }
 
-/* idle animation: bob, look, blink, tail wag, wings, tentacles. k = excitement 0..1 */
-export function animate(R, t, k = 0, lookYaw = 0) {
-  const p = t + R.phase;
-  if (R.bob) R.bob.position.y = (R.bobY || 0) + Math.sin(p * 2.1) * .02 / R.scale + k * Math.abs(Math.sin(p * 14)) * .25 / R.scale;
-  if (R.head) R.head.rotation.y += ((lookYaw + Math.sin(p * .7) * .25) - R.head.rotation.y) * .06;
-  if (R.head && R.plan !== 'flock') R.head.rotation.z = Math.sin(p * 1.3) * .06 + k * Math.sin(p * 20) * .2;
-  if (R.tail) R.tail.rotation.y = Math.sin(p * (3 + k * 10)) * (.35 + k * .3);
-  if (R.eyes) { const bl = (p % 4.3) < .13 ? .1 : 1; for (const e of R.eyes) e.scale.y = bl; }
+/* merge every group's static parts into one vertex-coloured mesh per material kind: ~10 draw calls per animal */
+const VC = {};
+function vcMat(k) {
+  if (VC[k]) return VC[k];
+  VC[k] = k === 'lam' ? patch(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }), { aoMin: .62, aoH: .9 })
+    : k === 'glow' ? new THREE.MeshBasicMaterial({ vertexColors: true, fog: false }) : new THREE.MeshBasicMaterial({ vertexColors: true });
+  return VC[k];
+}
+const kindOf = m => m.transparent ? null : m.type === 'MeshLambertMaterial' && !m.vertexColors ? 'lam' : m.type === 'MeshBasicMaterial' && !m.vertexColors ? (m.fog === false ? 'glow' : 'basic') : null;
+function bake(root, R) {
+  const keep = new Set();
+  for (const v of Object.values(R)) { if (v && v.isMesh) keep.add(v); else if (Array.isArray(v)) v.forEach(o => o && o.isMesh && keep.add(o)); }
+  const nodes = []; root.traverse(n => { if (!n.isMesh) nodes.push(n); });
+  for (const n of nodes) {
+    const by = {};
+    for (const ch of n.children) if (ch.isMesh && !keep.has(ch)) { const k = kindOf(ch.material); if (k) (by[k] = by[k] || []).push(ch); }
+    for (const k in by) {
+      const list = by[k]; if (list.length < 2) continue;
+      const geos = list.map(m => {
+        m.updateMatrix(); const g = (m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone());
+        for (const at of Object.keys(g.attributes)) if (at !== 'position' && at !== 'normal') g.deleteAttribute(at);
+        g.applyMatrix4(m.matrix); const c = m.material.color, n3 = g.attributes.position.count, col = new Float32Array(n3 * 3);
+        for (let i = 0; i < n3; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+        g.setAttribute('color', new THREE.BufferAttribute(col, 3)); return g;
+      });
+      const mg = mergeGeometries(geos); if (!mg) continue;
+      const mesh = new THREE.Mesh(mg, vcMat(k)); n.add(mesh); list.forEach(m => n.remove(m));
+    }
+  }
+}
+
+/* animation. k = excitement 0..1 (just tapped), lookYaw/lookP = where the head turns, w = walking 0..1 (R.gait advances outside) */
+export function animate(R, t, k = 0, lookYaw = 0, w = 0, lookP = 0) {
+  const p = t + R.phase, g = R.gait || 0;
+  if (R.bob) {
+    R.bob.position.y = (R.bobY || 0) + Math.sin(p * 2.1) * .015 / R.scale + w * Math.abs(Math.sin(g)) * .05 / R.scale + k * Math.abs(Math.sin(p * 14)) * .2 / R.scale;
+    const br = Math.sin(p * 1.75); R.bob.scale.set(1, 1 + br * .01, 1 + br * .03); // breathing
+    R.bob.rotation.x = w * Math.sin(g) * .04;
+  }
+  if (R.head) {
+    R.head.rotation.y += ((lookYaw + (1 - w) * Math.sin(p * .7) * .22) - R.head.rotation.y) * .07;
+    if (R.plan !== 'flock') R.head.rotation.z = Math.sin(p * 1.3) * .05 + lookP * .5 + w * Math.sin(g * 2) * .05 + k * Math.sin(p * 20) * .15 + (R.chew || 0) * Math.sin(p * 14) * .12;
+  }
+  if (R.tail) { R.tail.rotation.y = Math.sin(p * (2.4 + k * 10 + w * 3)) * (.35 + k * .3); R.tail.rotation.z = Math.sin(p * 1.1) * .12; }
+  if (R.eyes) { const q = p % 4.3, bl = q < .12 || (R.phase > 5 && q > .3 && q < .4) ? .1 : 1; for (const e of R.eyes) e.scale.y = bl; }
+  if (R.ears) R.ears.forEach((m, i) => { const tw = ((p * .37 + i * .13) % 5) < .12 ? .35 : 0; m.rotation.x = R.earRot[i] + (i ? -tw : tw) + k * Math.sin(p * 25) * .15 + (i % 2 ? 1 : -1) * (R.earsBack || 0) * .7; });
   if (R.wings) { const f = Math.sin(p * (R.plan === 'bat' ? 1.5 : 2) + (k ? p * 18 : 0)) * (.15 + k * .5); R.wings[0].rotation.x = f; R.wings[1].rotation.x = -f; }
-  if (R.legs && k > 0) R.legs.forEach((l, i) => l.rotation.z = Math.sin(p * 16 + i * 2) * .4 * k);
+  if (R.legs) {
+    const n = R.legs.length;
+    R.legs.forEach((l, i) => {
+      const off = n <= 2 ? (i % 2) * Math.PI : ((((i >> 1) + (i & 1)) % 2) * Math.PI), sw = Math.sin(g + off);
+      l.rotation.z = sw * .5 * w + (k > 0 ? Math.sin(p * 16 + i * 2) * .3 * k : 0);
+      if (R.knees && R.knees[i]) R.knees[i].rotation.z = -Math.max(0, Math.sin(g + off + 1.3)) * .75 * w;
+    });
+  }
   if (R.tents) R.tents.forEach((tt, i) => tt.rotation.z = Math.sin(p * 1.4 + i) * .25);
   if (R.flock) R.flock.forEach((n, i) => n.rotation.z = Math.sin(p * .8 + i * 1.7) * .25 - (i % 3 === 0 ? (Math.sin(p * .3 + i) > .6 ? .9 : 0) : 0));
   if (R.trunk) R.trunk.rotation.z = Math.sin(p * 1.1) * .25;
   if (R.lure) R.lure.scale.setScalar(.1 * (1 + .3 * Math.sin(p * 4)));
   if (R.tongue) R.tongue.visible = (p % 2) < .3;
-  if (R.arms) R.arms.forEach((a, i) => a.rotation.z = Math.sin(p * 1.2 + i * 3) * .12 + k * Math.sin(p * 15 + i) * .5);
+  if (R.arms) R.arms.forEach((a, i) => a.rotation.z = Math.sin(p * 1.2 + i * 3) * .1 - w * Math.sin(g + i * Math.PI) * .45 + k * Math.sin(p * 15 + i) * .5);
+  if (R.segs) R.segs.forEach((sg, i) => sg.position.y = R.segY[i] + Math.max(0, Math.sin(p * 1.6 - i * .5)) * .03);
 }
