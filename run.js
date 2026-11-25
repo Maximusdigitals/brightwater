@@ -28,12 +28,12 @@ const sx = (lane, z) => CX + lane * (RW * .66) * sc(z);
 /* ---------- sprites from the tour's own art ---------- */
 const SPR = {}; let prepped = false;
 const CHASE = ['Pip', 'The Long Keeper', 'The Hollow Stag'];
-const LANE_MON = ['Chupacabra', 'Kappa', 'The Jersey Devil', 'Nuckelavee', 'Baku, the Dream-Eater', 'Mothman', 'Kei, the Contract Cat', 'Puru, the Friendly Slime'];
+const LANE_MON = ['Chupacabra', 'Kappa', 'The Jersey Devil', 'Nuckelavee', 'Baku, the Dream-Eater', 'Mothman', 'Kyubey-gone', 'Jiji-ish', 'Gon-zilla', 'Kuramuffin'];
 function prep() {
   if (prepped) return; prepped = true;
   [...new Set([...CHASE, ...LANE_MON])].forEach(name => {
     const e = EX.find(x => x.n === name); if (!e) return;
-    const spec = Object.assign({}, e.a); if (name === 'Kei, the Contract Cat' || name === 'Puru, the Friendly Slime') { spec.eye = 'void'; spec.grin = .5; spec.smile = 0; }
+    const spec = Object.assign({}, e.a); if (name === 'Kyubey-gone' || name === 'Jiji-ish' || name === 'Kuramuffin') { spec.eye = 'void'; spec.grin = .5; spec.smile = 0; }
     const img = new Image(); img.onload = () => {
       const c = document.createElement('canvas'); c.width = 360; c.height = 270; const g = c.getContext('2d'); g.drawImage(img, 0, 0, 360, 270);
       const dk = document.createElement('canvas'); dk.width = 360; dk.height = 270; const h = dk.getContext('2d'); h.drawImage(c, 0, 0); h.globalCompositeOperation = 'source-atop'; h.fillStyle = 'rgba(10,6,10,.58)'; h.fillRect(0, 0, 360, 270);

@@ -56,7 +56,7 @@ function quad(o, id) {
   else if (o.tail === 'ring') { s += Q(`M${f(tx)} ${f(ty)} Q${f(tx - 34)} ${f(ty - 10)} ${f(tx - 30)} ${f(ty - 46)}`, c, 11); for (let i = 0; i < 5; i++) { const t = (i + .5) / 5, x = (1 - t) * (1 - t) * tx + 2 * (1 - t) * t * (tx - 34) + t * t * (tx - 30), y = (1 - t) * (1 - t) * ty + 2 * (1 - t) * t * (ty - 10) + t * t * (ty - 46); s += C(x, y, 4.4, o.ringc || '#6e3a1f'); } }
   else if (o.tail === 'thick') s += P(`M${f(tx + 8)} ${f(ty - 6)} Q${f(tx - 40)} ${f(ty + 4)} ${f(tx - 70)} ${f(ty + 26)} Q${f(tx - 30)} ${f(ty + 22)} ${f(tx + 8)} ${f(ty + 14)}Z`, c);
   else if (o.tail === 'stub') s += E(tx, ty, 6, 4, d);
-  else if (o.tail === 'tails9') { for (let i = 0; i < 9; i++) { const a = -PI * .95 + i * .16; s += P(`M${f(tx + 6)} ${f(ty)} Q${f(tx + cos(a) * 30)} ${f(ty + sin(a) * 40 - 10)} ${f(tx + cos(a) * 54)} ${f(ty + sin(a) * 50)} Q${f(tx + cos(a) * 34 + 8)} ${f(ty + sin(a) * 30)} ${f(tx + 4)} ${f(ty + 8)}Z`, i % 2 ? c : shade(c, -.06)) + C(tx + cos(a) * 52, ty + sin(a) * 48, 5, o.tailtip || '#c8402f'); } }
+  else if (o.tail === 'tails9') { const keep = o.tailsN == null ? 9 : o.tailsN; for (let i = 0; i < 9; i++) { const a = -PI * .95 + i * .16, live = keep === 9 || i === Math.floor(9 / 2); if (!live) { s += P(`M${f(tx + 4)} ${f(ty)} Q${f(tx + cos(a) * 12)} ${f(ty + sin(a) * 14)} ${f(tx + cos(a) * 20)} ${f(ty + sin(a) * 18)} Q${f(tx + cos(a) * 10)} ${f(ty + sin(a) * 8)} ${f(tx + 4)} ${f(ty + 4)}Z`, shade(c, -.12)) + C(tx + cos(a) * 20, ty + sin(a) * 18, 3.2, o.tailtip || '#c8402f'); continue; } s += P(`M${f(tx + 6)} ${f(ty)} Q${f(tx + cos(a) * 30)} ${f(ty + sin(a) * 40 - 10)} ${f(tx + cos(a) * 54)} ${f(ty + sin(a) * 50)} Q${f(tx + cos(a) * 34 + 8)} ${f(ty + sin(a) * 30)} ${f(tx + 4)} ${f(ty + 8)}Z`, i % 2 ? c : shade(c, -.06)) + C(tx + cos(a) * 52, ty + sin(a) * 48, 5, o.tailtip || '#c8402f'); } }
   // legs: far then near
   const n = o.legs || 4, lx = [];
   if (n === 4) lx.push(cx - bw * .6, cx + bw * .5); else for (let i = 0; i < n / 2; i++) lx.push(cx - bw * .8 + i * (bw * 1.6 / (n / 2 - 1)));
@@ -65,7 +65,7 @@ function quad(o, id) {
   if (o.hump) s += E(cx - bw * .1, cy - bh * .8, bw * .4, bh * .5, c);
   s += E(cx, cy, bw, bh, c);
   if (o.belly) s += P(`M${f(cx - bw * .8)} ${f(cy + bh * .4)} Q${f(cx)} ${f(cy + bh * 1.25)} ${f(cx + bw * .8)} ${f(cy + bh * .4)} Q${f(cx)} ${f(cy + bh * .75)} ${f(cx - bw * .8)} ${f(cy + bh * .4)}Z`, o.belly);
-  if (o.pat) { s += `<clipPath id="${id}cb">${E(cx, cy, bw, bh, '#000')}</clipPath><g clip-path="url(#${id}cb)">`; if (o.pat === 'stripes') s += stripes(cx, cy, bw, bh, o.patc || INK, o.patn || 9); if (o.pat === 'spots') s += spots(cx, cy, bw, bh, o.patc || INK, o.patn || 14, o.seed || 3, o.patb || 1); if (o.pat === 'ros') s += spots(cx, cy, bw, bh, o.patc || INK, o.patn || 18, o.seed || 5, .7); if (o.pat === 'windows') { for (let i = 0; i < 4; i++) s += R(cx - bw * .7 + i * bw * .38, cy - bh * .55, bw * .28, bh * .55, '#fff4c6', 5) + R(cx - bw * .7 + i * bw * .38, cy - bh * .55, bw * .28, 5, shade(c, -.35)); } s += `</g>`; }
+  if (o.pat) { s += `<clipPath id="${id}cb">${E(cx, cy, bw, bh, '#000')}</clipPath><g clip-path="url(#${id}cb)">`; if (o.pat === 'stripes') s += stripes(cx, cy, bw, bh, o.patc || INK, o.patn || 9); if (o.pat === 'spots') s += spots(cx, cy, bw, bh, o.patc || INK, o.patn || 14, o.seed || 3, o.patb || 1); if (o.pat === 'ros') s += spots(cx, cy, bw, bh, o.patc || INK, o.patn || 18, o.seed || 5, .7); if (o.pat === 'windows') { for (let i = 0; i < 4; i++) { const wx = cx - bw * .7 + i * bw * .38, wy = cy - bh * .55, ww = bw * .28, wh = bh * .55; s += R(wx, wy, ww, wh, o.sealed ? '#c9b896' : '#fff4c6', 5) + R(wx, wy, ww, 5, shade(c, -.35)); if (o.sealed) s += Q(`M${f(wx + 2)} ${f(wy + 6)} L${f(wx + ww - 2)} ${f(wy + wh - 2)} M${f(wx + ww - 2)} ${f(wy + 6)} L${f(wx + 2)} ${f(wy + wh - 2)}`, INK, 1.6); } } s += `</g>`; }
   if (o.spines) for (let i = 0; i < 7; i++) { const x = cx - bw * .7 + i * bw * .22; s += P(`M${f(x - 5)} ${f(cy - bh * .82)} L${f(x)} ${f(cy - bh * .82 - 14 - (i % 2) * 6)} L${f(x + 5)} ${f(cy - bh * .82)}Z`, o.spinec || INK); }
   if (leg > 0) lx.forEach(x => s += legd(x, c, 0));
   if (o.rider) s += rider(o, cx, cy, bh);
@@ -100,6 +100,9 @@ function quad(o, id) {
   if (o.mark) s += P(`M${f(hx - hr * .1)} ${f(hy - hr * .9)} l3 6 l3 -6Z`, o.mark);
   s += eye(hx + hr * .25, hy - hr * .22, hr * (o.er || .2), o);
   if (o.eyes2) s += eye(hx - hr * .2, hy - hr * .35, hr * (o.er || .2) * .8, o) + eye(hx + hr * .55, hy - hr * .6, hr * (o.er || .2) * .6, o);
+  if (o.glasses) { const gx = hx + hr * .28, gy = hy - hr * .2; s += E(gx, gy, hr * .42, hr * .32, 'none', 'stroke="#1f1c17" stroke-width="2.2"') + Q(`M${f(gx + hr * .42)} ${f(gy)} L${f(gx + hr * .95)} ${f(gy - hr * .15)}`, INK, 1.8); }
+  if (o.collar) s += R(hx - hr * .85, hy + hr * .8, hr * 1.35, 5, o.collar, 1) + (o.key ? (C(hx + 2, hy + hr * 1.15, 4.2, 'none', 'stroke="#d8b441" stroke-width="2"') + R(hx + 1, hy + hr * 1.15 + 4, 2.4, 7, '#d8b441')) : '');
+  if (o.moon === 'down') s += P(`M${f(hx - 6)} ${f(hy - hr * .95)} A 8 8 0 0 0 ${f(hx + 8)} ${f(hy - hr * .95)} A 5.5 5.5 0 0 1 ${f(hx - 6)} ${f(hy - hr * .95)}Z`, o.moonc || '#f4e3a0');
   return s;
 }
 function rider(o, cx, cy, bh) { // nuckelavee: a torso grown out of the back
@@ -226,6 +229,7 @@ function blob(o, id) { // anime spirits, slimes, seals
   if (o.ear === 'mouse') s += C(cx - r * .62, cy - r * .7, r * .38, d) + C(cx + r * .62, cy - r * .7, r * .38, d) + C(cx - r * .62, cy - r * .7, r * .2, o.earin || '#f3c7c1') + C(cx + r * .62, cy - r * .7, r * .2, o.earin || '#f3c7c1');
   if (o.ear === 'cat') s += P(`M${f(cx - r * .8)} ${f(cy - r * .4)} L${f(cx - r * .7)} ${f(cy - r * 1.25)} L${f(cx - r * .2)} ${f(cy - r * .8)}Z`, d) + P(`M${f(cx + r * .8)} ${f(cy - r * .4)} L${f(cx + r * .7)} ${f(cy - r * 1.25)} L${f(cx + r * .2)} ${f(cy - r * .8)}Z`, d);
   if (o.ear === 'antenna') s += Q(`M${f(cx - r * .3)} ${f(cy - r * .8)} Q${f(cx - r * .6)} ${f(cy - r * 1.6)} ${f(cx - r * .9)} ${f(cy - r * 1.5)} M${f(cx + r * .3)} ${f(cy - r * .8)} Q${f(cx + r * .6)} ${f(cy - r * 1.6)} ${f(cx + r * .9)} ${f(cy - r * 1.5)}`, d, 2.5) + C(cx - r * .9, cy - r * 1.5, 4.5, '#ffe66b', 'class="zap"') + C(cx + r * .9, cy - r * 1.5, 4.5, '#ffe66b', 'class="zap"');
+  if (o.clipWings) { const wc = o.wingc || shade(c, .15); s += P(`M${f(cx - r * .85)} ${f(cy - r * .05)} Q${f(cx - r * 1.45)} ${f(cy - r * .35)} ${f(cx - r * 1.25)} ${f(cy + r * .2)} Q${f(cx - r * .95)} ${f(cy + r * .1)} ${f(cx - r * .8)} ${f(cy + r * .08)}Z`, wc) + P(`M${f(cx + r * .85)} ${f(cy - r * .05)} Q${f(cx + r * 1.45)} ${f(cy - r * .35)} ${f(cx + r * 1.25)} ${f(cy + r * .2)} Q${f(cx + r * .95)} ${f(cy + r * .1)} ${f(cx + r * .8)} ${f(cy + r * .08)}Z`, wc) + R(cx - r * 1.28, cy - 2, 16, 5, '#f4efe6', 2) + R(cx + r * 1.12, cy - 2, 16, 5, '#f4efe6', 2); }
   if (o.bigtail) s += P(`M${f(cx - r * .6)} ${f(cy + r * .3)} Q${f(cx - r * 2.2)} ${f(cy - r * .2)} ${f(cx - r * 1.5)} ${f(cy - r * 1.4)} Q${f(cx - r * .9)} ${f(cy - r * .3)} ${f(cx - r * .5)} ${f(cy)}Z`, o.tailc || c);
   if (o.drip) s += P(`M${f(cx - r)} ${f(150)} Q${f(cx - r * 1.05)} ${f(cy - r * .2)} ${f(cx)} ${f(cy - r * .95)} Q${f(cx + r * 1.05)} ${f(cy - r * .2)} ${f(cx + r)} ${f(150)} Q${f(cx + r * .6)} 156 ${f(cx + r * .3)} 150 Q${f(cx)} 158 ${f(cx - r * .3)} 150 Q${f(cx - r * .6)} 156 ${f(cx - r)} 150Z`, c, 'opacity=".92"');
   else s += E(cx, cy, r * (o.wide || 1), r * (o.squash || .9), c);
@@ -244,6 +248,9 @@ function blob(o, id) { // anime spirits, slimes, seals
   if (o.smile) s += Q(`M${f(cx - r * .12)} ${f(ey + er * 1.6)} Q${f(cx)} ${f(ey + er * 2.3)} ${f(cx + r * .12)} ${f(ey + er * 1.6)}`, INK, 1.8);
   if (o.grin) s += grin(cx, ey + er * 2, r * o.grin);
   if (o.whisk) s += Q(`M${f(cx - r * .45)} ${f(ey + er * 1.8)} l-18 -3 M${f(cx - r * .45)} ${f(ey + er * 2.1)} l-18 4 M${f(cx + r * .45)} ${f(ey + er * 1.8)} l18 -3 M${f(cx + r * .45)} ${f(ey + er * 2.1)} l18 4`, INK, 1.1);
+  if (o.glasses) s += E(cx - ed, ey, er * 1.55, er * 1.2, 'none', 'stroke="#1f1c17" stroke-width="1.7"') + E(cx + ed, ey, er * 1.55, er * 1.2, 'none', 'stroke="#1f1c17" stroke-width="1.7"') + Q(`M${f(cx - ed + er * 1.55)} ${f(ey)} L${f(cx + ed - er * 1.55)} ${f(ey)}`, INK, 1.4);
+  if (o.moon === 'down') s += P(`M${f(cx - 9)} ${f(cy - r * .72)} A 10 10 0 0 0 ${f(cx + 9)} ${f(cy - r * .72)} A 6.5 6.5 0 0 1 ${f(cx - 9)} ${f(cy - r * .72)}Z`, o.moonc || '#f4e3a0');
+  if (o.cable) { s += Q(`M${f(cx + 2)} ${f(ey + er * 2.3)} Q${f(cx + 22)} ${f(ey + 18)} ${f(cx + 40)} ${f(ey + 6)} Q${f(cx + 58)} ${f(ey - 8)} ${f(cx + 72)} ${f(ey + 14)}`, '#2a2a2c', 3.2) + Q(`M${f(cx + 8)} ${f(ey + er * 2)} Q${f(cx + 24)} ${f(ey + 16)} ${f(cx + 40)} ${f(ey + 6)}`, '#d8b441', 1.2) + C(cx + 72, ey + 14, 3.2, '#ffe66b', 'class="zap"') + Q(`M${f(cx + 68)} ${f(ey + 10)} l8 8 M${f(cx + 70)} ${f(ey + 20)} l8 -8`, '#ffe66b', 1.3); }
   return s;
 }
 function mecha(o, id) {
@@ -310,7 +317,20 @@ function scene(z, dk, id) {
 }
 
 /* ---------- public ---------- */
-const PLANS = { quad, bird, flock, upright, fish, serpent, octo, blob, mecha, bat, sloth, frog, mirror };
+
+function kaiju(o, id) {
+  const c = o.c || '#4a6b48', d = shade(c, -.25), cx = o.cx || 124; let s = '';
+  s += P(`M${f(cx - 18)} 124 Q${f(cx - 96)} 132 ${f(cx - 118)} 80 Q${f(cx - 70)} 122 ${f(cx - 12)} 136Z`, d);
+  s += R(cx - 22, 118, 18, 32, d, 5) + R(cx + 8, 118, 18, 32, d, 5);
+  s += P(`M${f(cx - 30)} 142 Q${f(cx - 38)} 72 ${f(cx + 2)} 48 Q${f(cx + 36)} 70 ${f(cx + 28)} 142Z`, c);
+  for (let i = 0; i < 6; i++) { const x = cx - 14 + i * 8, y = 56 + i * 11; s += P(`M${f(x - 7)} ${f(y)} L${f(x)} ${f(y - 24 - (i % 2) * 7)} L${f(x + 7)} ${f(y + 2)}Z`, o.plate || '#c8d45a'); }
+  s += Q(`M${f(cx - 16)} 90 Q${f(cx - 36)} 96 ${f(cx - 32)} 110`, c, 5) + Q(`M${f(cx + 18)} 90 Q${f(cx + 38)} 96 ${f(cx + 34)} 110`, c, 5);
+  s += E(cx + 8, 46, 24, 19, c) + grin(cx + 12, 54, 18);
+  s += eye(cx - 2, 40, 5, o) + eye(cx + 16, 38, 5, o);
+  s += Q(`M${f(cx + 22)} 46 l10 -8 M${f(cx + 24)} 44 l12 -2`, '#9aa7a0', 1.6);
+  return s;
+}
+const PLANS = { quad, bird, flock, upright, fish, serpent, octo, blob, mecha, kaiju, bat, sloth, frog, mirror };
 // opts: { id, zone, dk(0..1), empty, ajar, lurk, oddShadow, shine }
 function draw(spec, opts = {}) {
   const id = opts.id || ('a' + Math.random().toString(36).slice(2, 7)), dk = opts.dk || 0;
