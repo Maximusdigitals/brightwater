@@ -1,10 +1,10 @@
-@font-face{font-family:"Bungee";src:url(fonts/Bungee.woff2?v=616027) format("woff2");font-display:swap}
-@font-face{font-family:"Bungee Inline";src:url(fonts/BungeeInline.woff2?v=616027) format("woff2");font-display:swap}
-@font-face{font-family:"Young Serif";src:url(fonts/YoungSerif.woff2?v=616027) format("woff2");font-display:swap}
-@font-face{font-family:"Archivo";src:url(fonts/Archivo.woff2?v=616027) format("woff2");font-weight:400 800;font-stretch:62% 125%;font-display:swap}
-@font-face{font-family:"Reenie";src:url(fonts/ReenieBeanie.woff2?v=616027) format("woff2");font-display:swap}
-@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime.woff2?v=616027) format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime-Bold.woff2?v=616027) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Bungee";src:url(fonts/Bungee.woff2?v=617285) format("woff2");font-display:swap}
+@font-face{font-family:"Bungee Inline";src:url(fonts/BungeeInline.woff2?v=617285) format("woff2");font-display:swap}
+@font-face{font-family:"Young Serif";src:url(fonts/YoungSerif.woff2?v=617285) format("woff2");font-display:swap}
+@font-face{font-family:"Archivo";src:url(fonts/Archivo.woff2?v=617285) format("woff2");font-weight:400 800;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"Reenie";src:url(fonts/ReenieBeanie.woff2?v=617285) format("woff2");font-display:swap}
+@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime.woff2?v=617285) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime-Bold.woff2?v=617285) format("woff2");font-weight:700;font-display:swap}
 :root{--paper:#f3ead3;--card:#fbf5e6;--ink:#1f1c17;--bg:#f3ead3;--fg:#1f1c17;--mute:#6f675a;--rule:#cdbf9f;
 --or:#e0892b;--gr:#3f7d3a;--pk:#d9566b;--bl:#3b4f8f;--tl:#1f7f86;--rd:#8f2a22;--mu:#d8b441;
 --sign:"Bungee",Impact,"Arial Black",sans-serif;--serif:"Young Serif",Georgia,serif;--sans:"Archivo","Helvetica Neue",Arial,sans-serif;--hand:"Reenie","Comic Sans MS",cursive;--mono:"Courier Prime","Courier New",monospace;

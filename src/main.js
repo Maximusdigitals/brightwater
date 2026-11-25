@@ -113,8 +113,8 @@ function buildAll() {
   W = buildWorld(scene, atlas, gateTextures(GATES), signTextures());
   // visitors (instanced capsules) that thin out as the day goes on
   const shirt = ['#e0892b', '#3f7d3a', '#d9566b', '#3b4f8f', '#1f7f86', '#d8b441', '#f3ede0', '#8f5a9f'];
-  crowdBody = new THREE.InstancedMesh(new THREE.CylinderGeometry(.2, .24, 1.15, 6), new THREE.MeshLambertMaterial({ flatShading: true }), crowd.n);
-  crowdHead = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.17, 0), new THREE.MeshLambertMaterial({ flatShading: true }), crowd.n);
+  crowdBody = new THREE.InstancedMesh(new THREE.CylinderGeometry(.2, .24, 1.15, 6), new THREE.MeshLambertMaterial({ flatShading: true }), crowd.n + 1);
+  crowdHead = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.17, 0), new THREE.MeshLambertMaterial({ flatShading: true }), crowd.n + 1);
   const f = { p: new THREE.Vector3(), t: new THREE.Vector3(), r: new THREE.Vector3() };
   for (let i = 0; i < crowd.n; i++) {
     const s = 6 + Math.random() * (S_EXIT * .62), lat = (Math.random() < .5 ? -1 : 1) * (1.3 + Math.random() * 1.1);
