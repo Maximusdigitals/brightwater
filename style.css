@@ -1,10 +1,10 @@
-@font-face{font-family:"Bungee";src:url(fonts/Bungee.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Bungee Inline";src:url(fonts/BungeeInline.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Young Serif";src:url(fonts/YoungSerif.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Archivo";src:url(fonts/Archivo.woff2) format("woff2");font-weight:400 800;font-stretch:62% 125%;font-display:swap}
-@font-face{font-family:"Reenie";src:url(fonts/ReenieBeanie.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime.woff2) format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Bungee";src:url(fonts/Bungee.woff2?v=3) format("woff2");font-display:swap}
+@font-face{font-family:"Bungee Inline";src:url(fonts/BungeeInline.woff2?v=3) format("woff2");font-display:swap}
+@font-face{font-family:"Young Serif";src:url(fonts/YoungSerif.woff2?v=3) format("woff2");font-display:swap}
+@font-face{font-family:"Archivo";src:url(fonts/Archivo.woff2?v=3) format("woff2");font-weight:400 800;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"Reenie";src:url(fonts/ReenieBeanie.woff2?v=3) format("woff2");font-display:swap}
+@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime.woff2?v=3) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Courier Prime";src:url(fonts/CourierPrime-Bold.woff2?v=3) format("woff2");font-weight:700;font-display:swap}
 :root{--paper:#f3ead3;--card:#fbf5e6;--ink:#1f1c17;--bg:#f3ead3;--fg:#1f1c17;--mute:#6f675a;--rule:#cdbf9f;
 --or:#e0892b;--gr:#3f7d3a;--pk:#d9566b;--bl:#3b4f8f;--tl:#1f7f86;--rd:#8f2a22;--mu:#d8b441;
 --sign:"Bungee",Impact,"Arial Black",sans-serif;--serif:"Young Serif",Georgia,serif;--sans:"Archivo","Helvetica Neue",Arial,sans-serif;--hand:"Reenie","Comic Sans MS",cursive;--mono:"Courier Prime","Courier New",monospace;
@@ -30,7 +30,7 @@ a{color:inherit}
 /* ---------- gate ---------- */
 #gate{position:fixed;inset:0;z-index:100;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='2' cy='2' r='1.1' fill='%23e0892b' opacity='.28'/%3E%3C/svg%3E");color:var(--ink);display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:1rem;text-align:center;
 padding:max(1rem,env(safe-area-inset-top)) max(var(--pad),env(safe-area-inset-right)) max(1.1rem,env(safe-area-inset-bottom)) max(var(--pad),env(safe-area-inset-left));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;transition:opacity .7s,visibility .7s}
-#gate.gone{opacity:0;visibility:hidden}
+#gate.gone{opacity:0;visibility:hidden;pointer-events:none}
 .g-top{width:100%;display:flex;justify-content:space-between;font:700 .72rem/1 var(--sans);font-stretch:75%;text-transform:uppercase;letter-spacing:.14em;border-bottom:2px solid var(--ink);padding-bottom:.6rem}
 .g-mid{display:flex;flex-direction:column;align-items:center}
 .g-pip{width:clamp(96px,22vw,150px);aspect-ratio:1;margin-bottom:-.4rem;animation:wave 2.4s ease-in-out infinite}

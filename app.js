@@ -255,15 +255,33 @@ const toured = LS.get('bw.toured') === '1';
 if (toured) $('#skipRun').hidden = false;
 $('#tNo').textContent = String(10000 + Math.floor(Math.random() * 89999));
 (() => { let t = ''; if (IN_X && IOS) t = navigator.audioSession ? 'iPhone: turn your volume up.' : 'iPhone: flip the ringer switch on and turn the volume up.'; else if (IN_X) t = 'Turn your volume up.'; if (t) { const h = $('#hint'); h.textContent = t; h.hidden = false; } })();
-function begin(sound) {
-  if (started) return; started = true;
-  if (sound) S.unlock(); else $('#sndBtn').classList.add('off');
-  $('#gate').classList.add('gone'); document.body.classList.remove('locked');
-  setTimeout(() => { measure(); lastQ = -1; paint(); }, 60);
+function reveal() {
+  const gate = $('#gate');
+  if (gate) {
+    gate.classList.add('gone');
+    gate.style.pointerEvents = 'none';
+    try { gate.setAttribute('aria-hidden', 'true'); } catch (e) {}
+    setTimeout(() => { try { if (gate.classList.contains('gone')) gate.style.display = 'none'; } catch (e) {} }, 750);
+  }
+  document.body.classList.remove('locked');
+  try { document.body.style.height = ''; } catch (e) {}
+  root.classList.remove('noscroll');
 }
+function begin(sound) {
+  const first = !started;
+  started = true;
+  reveal();
+  try {
+    if (sound) S.unlock();
+    else { const b = $('#sndBtn'); if (b) b.classList.add('off'); }
+  } catch (e) {}
+  if (first) setTimeout(() => { try { measure(); lastQ = -1; paint(); } catch (e) {} }, 60);
+}
+window.__bwBegin = begin;
+if (window.__bwBegan) begin(window.__bwWantSound);
 $('#enter').addEventListener('click', () => begin(true));
 $('#enterQuiet').addEventListener('click', () => begin(false));
-$('#skipRun').addEventListener('click', () => { S.unlock(); started = true; scared = true; $('#gate').classList.add('gone'); warm(); runNow(true); });
+$('#skipRun').addEventListener('click', () => { started = true; scared = true; reveal(); try { S.unlock(); } catch (e) {} try { warm(); runNow(true); } catch (e) {} });
 $('#sndBtn').addEventListener('click', () => {
   const b = $('#sndBtn');
   if (!S.on) { S.unlock(); b.classList.remove('off'); lastQ = -1; paint(); return; }

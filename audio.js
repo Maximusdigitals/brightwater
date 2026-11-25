@@ -14,7 +14,8 @@ function silentWav() {
 // must run synchronously inside the tap
 function unlock() {
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
-  if (!A.ac) init(); const ac = A.ac; if (!ac) return false;
+  try { if (!A.ac) init(); } catch (e) { A.on = false; return false; }
+  const ac = A.ac; if (!ac) return false;
   try { const p = ac.resume && ac.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
   try { const b = ac.createBuffer(1, 1, 22050), s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(0); } catch (e) {}
   if (IOS && !navigator.audioSession && !A.silent) {
@@ -33,7 +34,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) kick
 
 function init() {
   const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
-  let ac; try { ac = new C({ latencyHint: 'interactive' }); } catch (e) { ac = new C(); }
+  let ac; try { ac = new C({ latencyHint: 'interactive' }); } catch (e) { try { ac = new C(); } catch (e2) { return; } }
+  try {
   A.ac = ac; A.on = true;
   const comp = ac.createDynamicsCompressor(); comp.threshold.value = -12; comp.ratio.value = 5; comp.connect(ac.destination);
   A.master = ac.createGain(); A.master.gain.value = .9; A.master.connect(comp);
@@ -54,6 +56,7 @@ function init() {
   // heartbeat bus
   A.hb = gain(0, A.master);
   sequencer(); ambience();
+  } catch (e) { A.on = false; }
 }
 function gain(v, to) { const g = A.ac.createGain(); g.gain.value = v; if (to) g.connect(to); return g; }
 function src(buf, loop, rate = 1) { const s = A.ac.createBufferSource(); s.buffer = buf; s.loop = !!loop; s.playbackRate.value = rate; return s; }

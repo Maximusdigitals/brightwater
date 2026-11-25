@@ -22,10 +22,10 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="canonical" href="https://maximusdigitals.github.io/brightwater/">
 <link rel="icon" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e0892b'/%3E%3Ccircle cx='16' cy='17' r='10' fill='%237a5032'/%3E%3Ccircle cx='16' cy='20' r='6' fill='%23e9cfa6'/%3E%3Ccircle cx='12.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3Ccircle cx='19.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3C/svg%3E">
-<link rel="preload" href="fonts/Bungee.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/YoungSerif.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/Archivo.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="preload" href="fonts/Bungee.woff2?v=3" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/YoungSerif.woff2?v=3" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Archivo.woff2?v=3" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body class="locked">
 
@@ -50,6 +50,43 @@
   <p class="g-hint" id="hint" hidden></p>
   <p class="g-note">Content note: this tour gets scary and ends in a loud jump scare and a chase game. No strobe lights. Best with headphones.</p>
 </div>
+<script>
+/* Gate must work the instant it appears, even while the rest of the scripts are still downloading. */
+(function () {
+  if (window.__bwArmGate) return;
+  window.__bwArmGate = true;
+  function reveal() {
+    var g = document.getElementById('gate');
+    if (g) {
+      g.className += (g.className.indexOf('gone') === -1 ? ' gone' : '');
+      g.style.pointerEvents = 'none';
+      try { g.setAttribute('aria-hidden', 'true'); } catch (e) {}
+    }
+    if (document.body) document.body.className = (document.body.className || '').replace(/\blocked\b/g, '').replace(/  +/g, ' ');
+    var r = document.documentElement;
+    if (r && r.classList) r.classList.remove('noscroll');
+  }
+  function go(sound) {
+    if (window.__bwBegan) return;
+    window.__bwBegan = true;
+    window.__bwWantSound = !!sound;
+    reveal();
+    if (window.__bwBegin) try { window.__bwBegin(!!sound); } catch (e) {}
+  }
+  window.__bwReveal = reveal;
+  window.__bwGo = go;
+  function arm(id, sound) {
+    var el = document.getElementById(id); if (!el) return;
+    var f = function (e) { if (e && e.preventDefault) e.preventDefault(); go(sound); };
+    el.addEventListener('pointerup', f);
+    el.addEventListener('click', f);
+    el.addEventListener('touchend', f, { passive: false });
+  }
+  arm('enter', true);
+  arm('enterQuiet', false);
+})();
+</script>
+
 
 <div id="sky" aria-hidden="true"></div>
 <div id="corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
@@ -124,10 +161,10 @@
 
 <footer id="foot"><p>Brightwater Zoo is fictional. Real-animal facts are real; the Spirit Grove residents are original characters; the Quarantine Wing borrows from public folklore. Fonts: Bungee, Young Serif, Archivo, Reenie Beanie, Courier Prime (SIL OFL, see <a href="fonts/">/fonts</a>).</p></footer>
 
-<script src="audio.js?v=2"></script>
-<script src="art.js?v=2"></script>
-<script src="data.js?v=2"></script>
-<script src="app.js?v=2"></script>
-<script src="run.js?v=2"></script>
+<script src="audio.js?v=3"></script>
+<script src="art.js?v=3"></script>
+<script src="data.js?v=3"></script>
+<script src="app.js?v=3"></script>
+<script src="run.js?v=3"></script>
 </body>
 </html>
