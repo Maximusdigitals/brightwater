@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Brightwater Zoo — Fifty Animals, One Way Round</title>
+<meta name="description" content="Brightwater Zoological Gardens, est. 1931. Fifty exhibits, one way round: savanna, rainforest, the Spirit Grove anime annex, the Night House and more. Gardens close at 6.">
+<meta name="theme-color" content="#f3ead3">
+<meta property="og:title" content="Brightwater Zoo — Fifty Animals, One Way Round">
+<meta property="og:description" content="Take the self-guided tour. Tap the animals, feed them, read their stories. Please leave by closing time.">
+<meta property="og:image" content="https://maximusdigitals.github.io/brightwater/img/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Brightwater Zoological Gardens: day ticket, admit one">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Brightwater Zoo">
+<meta property="og:url" content="https://maximusdigitals.github.io/brightwater/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Brightwater Zoo — Fifty Animals, One Way Round">
+<meta name="twitter:description" content="Take the self-guided tour. Tap the animals, feed them, read their stories. Please leave by closing time.">
+<meta name="twitter:image" content="https://maximusdigitals.github.io/brightwater/img/og.png">
+<meta name="twitter:image:alt" content="Brightwater Zoological Gardens: day ticket, admit one">
+<meta name="twitter:creator" content="@voidhl">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://maximusdigitals.github.io/brightwater/">
+<link rel="icon" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e0892b'/%3E%3Ccircle cx='16' cy='17' r='10' fill='%237a5032'/%3E%3Ccircle cx='16' cy='20' r='6' fill='%23e9cfa6'/%3E%3Ccircle cx='12.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3Ccircle cx='19.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/Bungee.woff2?v=3" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/YoungSerif.woff2?v=3" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Archivo.woff2?v=3" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body class="locked">
+
+<!-- ================= TICKET GATE ================= -->
+<div id="gate" role="dialog" aria-label="Enter Brightwater Zoo">
+  <div class="g-top"><span>Brightwater Zoological Gardens</span><span class="hide-s">Gate 1 · Lakeside</span><span>Est. 1931</span></div>
+  <div class="g-mid">
+    <div class="g-pip" id="gPip" aria-hidden="true"></div>
+    <h1 class="g-word" aria-label="Brightwater"><span>Bright</span><span>water</span></h1>
+    <p class="g-zoo">Zoo &amp; Gardens</p>
+  </div>
+  <div class="ticket">
+    <div class="t-main">
+      <p class="t-lab">Day ticket · Admit one · Valid until closing</p>
+      <p class="t-line">Fifty animals, one way round. Tap everything.</p>
+      <button id="enter" class="btn">Enter the gardens, sound on</button>
+      <button id="enterQuiet" class="linkbtn">Or walk in without sound</button>
+      <button id="skipRun" class="btn run" hidden>Skip the tour: run straight away</button>
+    </div>
+    <div class="t-stub" aria-hidden="true"><span>Nº</span><b id="tNo">00412</b><span>Gates close<br>6:00 pm</span></div>
+  </div>
+  <p class="g-hint" id="hint" hidden></p>
+  <p class="g-note">Content note: this tour gets scary and ends in a loud jump scare and a chase game. No strobe lights. Best with headphones.</p>
+</div>
+<script>
+/* Gate must work the instant it appears, even while the rest of the scripts are still downloading. */
+(function () {
+  if (window.__bwArmGate) return;
+  window.__bwArmGate = true;
+  function reveal() {
+    var g = document.getElementById('gate');
+    if (g) {
+      g.className += (g.className.indexOf('gone') === -1 ? ' gone' : '');
+      g.style.pointerEvents = 'none';
+      try { g.setAttribute('aria-hidden', 'true'); } catch (e) {}
+    }
+    if (document.body) document.body.className = (document.body.className || '').replace(/\blocked\b/g, '').replace(/  +/g, ' ');
+    var r = document.documentElement;
+    if (r && r.classList) r.classList.remove('noscroll');
+  }
+  function go(sound) {
+    if (window.__bwBegan) return;
+    window.__bwBegan = true;
+    window.__bwWantSound = !!sound;
+    reveal();
+    if (window.__bwBegin) try { window.__bwBegin(!!sound); } catch (e) {}
+  }
+  window.__bwReveal = reveal;
+  window.__bwGo = go;
+  function arm(id, sound) {
+    var el = document.getElementById(id); if (!el) return;
+    var f = function (e) { if (e && e.preventDefault) e.preventDefault(); go(sound); };
+    el.addEventListener('pointerup', f);
+    el.addEventListener('click', f);
+    el.addEventListener('touchend', f, { passive: false });
+  }
+  arm('enter', true);
+  arm('enterQuiet', false);
+})();
+</script>
+
+
+<div id="sky" aria-hidden="true"></div>
+<div id="corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div id="eyes" aria-hidden="true"></div>
+<div id="dim" aria-hidden="true"></div>
+
+<header id="bar">
+  <a class="wm" href="#top" aria-label="Brightwater Zoo"><span class="wm-pip" id="barPip" aria-hidden="true"></span><span class="wm-t">Brightwater</span></a>
+  <div class="bar-mid">
+    <span class="chip"><b id="clock">10:00 am</b><small id="closes">Gates close 6 pm</small></span>
+    <span class="chip hide-s"><b id="visitors">2,314</b><small>visitors in the park</small></span>
+  </div>
+  <button id="mapBtn" class="pill">Map</button>
+  <button id="sndBtn" class="pill icon" aria-label="Sound on or off">♪</button>
+</header>
+
+<main id="top">
+  <section id="hero">
+    <div class="h-band"><span>Open daily 10–6</span><span>Feeding times on every sign</span><span class="hide-s">Café · Gift shop · Baby change</span></div>
+    <h2 class="h-title"><span>Fifty animals.</span><span>One way round.</span></h2>
+    <div class="h-row">
+      <p class="h-lede">Welcome to Brightwater, home to lions, lemurs, the world-famous Spirit Grove and our friendly otter, <b>Pip</b>. Follow the paw prints: every exhibit takes you a little deeper into the gardens. Tap the animals, feed them, flip their signs.</p>
+      <div class="h-map" id="heroMap" aria-hidden="true"></div>
+    </div>
+    <button class="btn next" data-go="0">Start the route</button>
+  </section>
+  <div id="route"></div>
+  <section id="exit">
+    <div class="exit-sign"><span class="arr">→</span><span>EXIT</span></div>
+    <p class="exit-t" id="exitT">Thank you for visiting Brightwater.<br>Please make your way out.</p>
+    <div id="trigger" aria-hidden="true"></div>
+  </section>
+</main>
+
+<!-- park map -->
+<div id="map" role="dialog" aria-label="Park map" hidden>
+  <div class="map-in">
+    <div class="map-h"><b>Park map</b><span id="mapHint">You are here</span><button id="mapX" class="pill" aria-label="Close map">Close</button></div>
+    <div id="mapSvg"></div>
+    <p class="map-k"><i class="k1"></i>Visited <i class="k2"></i>Ahead <i class="k3"></i>You</p>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- the scare -->
+<div id="close" aria-hidden="true"><p id="closeT">The gardens are now closed.</p></div>
+<div id="scare" aria-hidden="true"><img class="s1" alt=""><img class="s2" alt=""></div>
+<div id="flash" aria-hidden="true"></div>
+<div id="runword" aria-hidden="true">RUN</div>
+
+<!-- runner -->
+<div id="game" aria-label="Escape the zoo">
+  <canvas id="cv"></canvas><div id="gvg"></div><div id="gred"></div>
+  <div id="hud"><span><b id="hudM">0</b> m</span><span class="hud-p"><i></i><b id="hudP">0</b></span><span class="hud-b">Best <b id="hudB">0</b></span></div>
+  <div id="howto"><p><b>Swipe</b> ← → to dodge, ↑ to jump, ↓ to slide</p><p class="desk">Arrows or WASD · Space to jump</p></div>
+  <button id="resume" hidden>Tap to keep running</button>
+  <div id="over" hidden>
+    <div class="ov-card">
+      <p class="ov-lab" id="ovBy">Caught by</p>
+      <h2 class="ov-h" id="ovName">The Long Keeper</h2>
+      <div class="ov-stats"><div><b id="ovM">0</b><span>metres</span></div><div><b id="ovP">0</b><span>pellets</span></div><div><b id="ovS">0</b><span>score</span></div></div>
+      <p class="ov-best" id="ovBest">Best: 0</p>
+      <div class="ov-btns">
+        <button id="again" class="btn">Run again</button>
+        <a id="share" class="btn alt" href="#" target="_blank" rel="noopener">Share score on X</a>
+        <button id="toTour" class="linkbtn">Back to the gate</button>
+      </div>
+      <p class="ov-note">Run mode is unlocked on the gate now that you’ve finished the tour.</p>
+    </div>
+  </div>
+</div>
+
+<footer id="foot"><p>Brightwater Zoo is fictional. Real-animal facts are real; the Spirit Grove residents are original characters; the Quarantine Wing borrows from public folklore. Fonts: Bungee, Young Serif, Archivo, Reenie Beanie, Courier Prime (SIL OFL, see <a href="fonts/">/fonts</a>).</p></footer>
+
+<script src="audio.js?v=3"></script>
+<script src="art.js?v=3"></script>
+<script src="data.js?v=3"></script>
+<script src="app.js?v=3"></script>
+<script src="run.js?v=3"></script>
+</body>
+</html>

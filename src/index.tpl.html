@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Brightwater Zoo — Fifty Animals, One Way Round</title>
+<meta name="description" content="Brightwater Zoological Gardens, est. 1931. Walk the park in 3D: fifty enclosures, one winding avenue, savanna to Spirit Grove to the Quarantine Wing. Gardens close at 6.">
+<meta name="theme-color" content="#f3ead3">
+<meta property="og:title" content="Brightwater Zoo — Fifty Animals, One Way Round">
+<meta property="og:description" content="Take the walk. Look into the cages, tap the animals, read their stories. Please leave by closing time.">
+<meta property="og:image" content="https://maximusdigitals.github.io/brightwater/img/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Brightwater Zoological Gardens: day ticket, admit one">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Brightwater Zoo">
+<meta property="og:url" content="https://maximusdigitals.github.io/brightwater/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Brightwater Zoo — Fifty Animals, One Way Round">
+<meta name="twitter:description" content="Take the walk. Look into the cages, tap the animals, read their stories. Please leave by closing time.">
+<meta name="twitter:image" content="https://maximusdigitals.github.io/brightwater/img/og.png">
+<meta name="twitter:image:alt" content="Brightwater Zoological Gardens: day ticket, admit one">
+<meta name="twitter:creator" content="@voidhl">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://maximusdigitals.github.io/brightwater/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e0892b'/%3E%3Ccircle cx='16' cy='17' r='10' fill='%237a5032'/%3E%3Ccircle cx='16' cy='20' r='6' fill='%23e9cfa6'/%3E%3Ccircle cx='12.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3Ccircle cx='19.5' cy='15' r='1.8' fill='%231f1c17'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/Bungee.woff2?v=__V__" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/YoungSerif.woff2?v=__V__" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=__V__">
+</head>
+<body class="locked">
+<canvas id="gl" aria-label="Brightwater Zoo, in 3D. Scroll or swipe up to walk, swipe left or right to face a cage, tap an animal."></canvas>
+<div id="vig" aria-hidden="true"></div>
+
+<!-- ================= TICKET GATE ================= -->
+<div id="gate" role="dialog" aria-label="Enter Brightwater Zoo">
+  <div class="g-top"><span>Brightwater Zoological Gardens</span><span class="hide-s">Gate 1 · Lakeside</span><span>Est. 1931</span></div>
+  <div class="g-mid">
+    <svg class="g-pip" viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="112" rx="30" ry="5" fill="#1f1c17" opacity=".15"/><path d="M36 108c-4-30 0-58 24-58s28 28 24 58z" fill="#7a5032"/><ellipse cx="60" cy="88" rx="15" ry="20" fill="#e9cfa6"/><circle cx="60" cy="44" r="27" fill="#7a5032"/><circle cx="36" cy="24" r="7" fill="#7a5032"/><circle cx="84" cy="24" r="7" fill="#7a5032"/><ellipse cx="60" cy="52" rx="18" ry="14" fill="#e9cfa6"/><circle cx="50" cy="40" r="3.6" fill="#1f1c17"/><circle cx="70" cy="40" r="3.6" fill="#1f1c17"/><ellipse cx="60" cy="49" rx="5" ry="3.6" fill="#1f1c17"/><path d="M50 58q10 8 20 0" stroke="#1f1c17" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M86 80q16-6 14-22" stroke="#7a5032" stroke-width="7" fill="none" stroke-linecap="round"/></svg>
+    <h1 class="g-word" aria-label="Brightwater"><span>Bright</span><span>water</span></h1>
+    <p class="g-zoo">Zoo &amp; Gardens · now in 3D</p>
+  </div>
+  <div class="ticket">
+    <div class="t-main">
+      <p class="t-lab">Day ticket · Admit one · Valid until closing</p>
+      <p class="t-line">Fifty animals, one way round. Scroll to walk, swipe to look into the cages, tap the animals.</p>
+      <button id="enter" class="btn">Enter the gardens, sound on</button>
+      <button id="enterQuiet" class="linkbtn">Or walk in without sound</button>
+      <button id="skipRun" class="btn run" hidden>Skip the tour: run straight away</button>
+    </div>
+    <div class="t-stub" aria-hidden="true"><span>Nº</span><b>00412</b><span>Gates close<br>6:00 pm</span></div>
+  </div>
+  <p class="g-note">Content note: this walk gets scary and ends in a loud jump scare and a chase game. No strobe lights. Best with headphones. <a href="classic/">Classic 2D version</a></p>
+  <p class="g-nogl">Your browser couldn’t start 3D graphics (WebGL), so the walk can’t load here. Try opening this link in Safari or Chrome, or take the <a href="classic/">classic 2D tour</a>.</p>
+</div>
+<script>
+/* The gate must work the instant it appears, even while the 3D park is still downloading. */
+(function () {
+  if (window.__bwArmGate) return; window.__bwArmGate = true;
+  function go(sound, run) {
+    if (window.__bwBegan) return;
+    window.__bwBegan = true; window.__bwWantSound = !!sound; window.__bwWantRun = !!run;
+    var g = document.getElementById('gate'); if (g) { g.className += ' gone'; g.style.pointerEvents = 'none'; try { g.setAttribute('aria-hidden', 'true'); } catch (e) {} }
+    if (window.__bwBegin) try { window.__bwBegin(!!sound, !!run); } catch (e) {}
+  }
+  function arm(id, sound, run) {
+    var el = document.getElementById(id); if (!el) return;
+    var f = function (e) { if (e && e.preventDefault) e.preventDefault(); go(sound, run); };
+    el.addEventListener('pointerup', f); el.addEventListener('click', f); el.addEventListener('touchend', f, { passive: false });
+  }
+  arm('enter', true); arm('enterQuiet', false); arm('skipRun', true, true);
+  try { if (localStorage.getItem('bw3.toured')) document.getElementById('skipRun').hidden = false; } catch (e) {}
+  // stop iOS rubber-banding / pull-to-refresh on the 3D view
+  document.addEventListener('touchmove', function (e) { if (!e.target.closest || !e.target.closest('#card,#gate,#over')) e.preventDefault(); }, { passive: false });
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+})();
+</script>
+
+<header id="bar">
+  <span class="wm"><b>Brightwater</b><small id="zoneName">Savanna Walk</small></span>
+  <span class="chip"><b id="clock">10:00 am</b><small>Gates close 6 pm</small></span>
+  <span class="chip"><b id="visitors">2,314</b><small>in the park</small></span>
+  <span class="chip hide-s"><b id="exn">1–2 / 50</b><small>exhibits</small></span>
+  <button id="sndBtn" class="pill icon" aria-label="Sound on or off">♪</button>
+</header>
+<nav id="nav" aria-label="Look around">
+  <button id="tl" class="tb l" aria-label="Turn left"><i>◀</i><span></span></button>
+  <button id="tf" class="tb f" aria-label="Walk on or face the path"><i>▲</i><span></span></button>
+  <button id="tr" class="tb r" aria-label="Turn right"><span></span><i>▶</i></button>
+</nav>
+<p id="hint3d">Scroll or swipe up to walk</p>
+<div id="banner" aria-live="polite"></div>
+<div id="card" role="dialog" aria-label="Exhibit" hidden></div>
+<p id="closeT" aria-live="assertive"></p>
+<div id="flash" aria-hidden="true"></div>
+<div id="runword" aria-hidden="true">RUN</div>
+
+<!-- runner -->
+<div id="game" aria-label="Escape the zoo">
+  <div id="gred"></div>
+  <div id="hud"><span><b id="hudM">0</b> m</span><span class="hud-p"><i></i><b id="hudP">0</b></span><span class="hud-b">Best <b id="hudB">0</b></span></div>
+  <div id="howto"><p><b>Swipe</b> ← → to change lane, ↑ to jump, ↓ to slide</p><p class="desk">Arrows or WASD · Space to jump</p></div>
+  <button id="resume" hidden>Tap to keep running</button>
+  <div id="over" hidden>
+    <div class="ov-card">
+      <p class="ov-lab">Caught by</p>
+      <h2 class="ov-h" id="ovName">Pip</h2>
+      <div class="ov-stats"><div><b id="ovM">0</b><span>metres</span></div><div><b id="ovP">0</b><span>pellets</span></div><div><b id="ovS">0</b><span>score</span></div></div>
+      <p class="ov-best" id="ovBest">Best: 0</p>
+      <div class="ov-btns">
+        <button id="again" class="btn">Run again</button>
+        <a id="share" class="btn alt" href="#" target="_blank" rel="noopener">Share score on X</a>
+        <button id="toTour" class="linkbtn">Back to the gate</button>
+      </div>
+      <p class="ov-note">Run mode is unlocked on the gate now that you’ve finished the tour.</p>
+    </div>
+  </div>
+</div>
+
+<script src="audio.js?v=__V__"></script>
+<script src="data.js?v=__V__"></script>
+<script src="app.js?v=__V__"></script>
+</body>
+</html>

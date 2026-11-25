@@ -177,6 +177,7 @@ function step(p = 0, w = 0, vol = .22) { hiss(.12, vol, 240, 1.4, 'lowpass', w, 
 function giggle(p = 0) { [0, .11, .2, .28, .42].forEach((w, i) => tone('triangle', 980 - i * 40, .08, .06, w, { to: 760, pan: p, wet: 1, vib: 30, vd: 40 })); }
 function whisper(p = 0, dur = 1.4, vol = .12) { hiss(dur, vol, 2600, 4, 'bandpass', 0, p, 1800); hiss(dur * .8, vol * .7, 1200, 5, 'bandpass', .2, p, 900); }
 function heart(n = 2, when = 0, vol = .4) { for (let i = 0; i < n; i++) { tone('sine', 58, .16, vol, when + i * .78, { to: 40 }); tone('sine', 52, .14, vol * .7, when + i * .78 + .2, { to: 38 }); } }
+function breath() { hiss(1.3, .07, 650, 1.6, 'bandpass', 0, 0, 380); hiss(1.5, .05, 480, 1.6, 'bandpass', 1.5, 0, 300); }
 function feed() { for (let i = 0; i < 5; i++) tone('sine', 1300 + Math.random() * 600, .05, .05, i * .07); }
 function ui() { tone('sine', 1250, .05, .05); }
 function sting(k = 1) {
@@ -200,5 +201,5 @@ const run = {
   chase: k => { if (!A.on) return; setG(A.drone, .15 + k * .3, .3); },
   stop: () => { if (!A.on) return; setG(A.drone, 0, 1); setG(A.wind, 0, 1); }
 };
-window.SFX = { A, unlock, kick, setDread, hushAll, voice, step, giggle, whisper, heart, feed, ui, sting, roar, run, get on() { return A.on; }, get state() { return A.on ? A.ac.state : 'off'; } };
+window.SFX = { A, unlock, kick, setDread, hushAll, voice, step, giggle, whisper, heart, breath, feed, ui, sting, roar, run, get on() { return A.on; }, get state() { return A.on ? A.ac.state : 'off'; } };
 })();
